@@ -1,0 +1,44 @@
+version: '3.4'
+services:
+
+  db:
+    image: 'postgres:11'
+    container_name: ${HIVEON_DB_HOST}
+    hostname: ${HIVEON_DB_HOST}
+    ports:
+      - "54320:5432"
+    restart: unless-stopped
+    volumes:
+      - ./__data/pg:/var/lib/postgresql/data
+      - ./scripts/pg-init:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: "idp_dev, hydra"
+      POSTGRES_USER: idp
+      POSTGRES_PASSWORD: 8GWbz2JF4FMe1Q8X
+      HIVEON_DB: hiveon_db
+    build: './build'
+
+  redis:
+    image: redis:4.0.5-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ../data/redis:/data
+    entrypoint: redis-server --appendonly yes
+    restart: always
+  
+  # idp:
+  #   build:
+  #     context: .
+  #     args:
+  #       NODE_ENV: development
+  #       GIN_MODE: debug
+  #       ENV: development
+  #   container_name: idp
+  #     links:
+  #       - db:db
+  #   image: idp
+  #   ports:
+  #     - "3000:3000"
+  #   env_file: .env
