@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"git.tor.ph/hiveon/idp/models/users"
 	"git.tor.ph/hiveon/pool/config"
 	internalAdmin "git.tor.ph/hiveon/pool/internal/admin"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
@@ -76,6 +77,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	admin.AddResource(&models.Wallet{})
 	admin.AddResource(&models.Coin{})
+	admin.AddResource(&users.User{})
 
 	mux := http.NewServeMux()
 	admin.MountTo("/admin", mux)
