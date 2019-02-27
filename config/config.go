@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 
+	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
 	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
@@ -14,6 +15,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+)
+
+const (
+	apiHost = "api.host"
+	apiPort = "api.port"
 )
 
 const (
@@ -34,6 +40,13 @@ const (
 	idpdbPass    = "idp.db.password"
 	idpdbName    = "idp.db.name"
 	idpdbLog     = "idp.db.log"
+)
+
+const (
+	influxHost = "influx.host"
+	influxPort = "influx.port"
+	influxUser = "influx.user"
+	influxPass = "influx.password"
 )
 
 const (
@@ -62,6 +75,8 @@ var (
 
 	Admin admin
 	Hydra hydra.Config
+
+	API api.Config
 )
 
 func init() {
@@ -141,4 +156,8 @@ func init() {
 		EnableLog: viper.GetBool(idpdbLog),
 	}
 
+	API = api.Config{
+		Host: viper.GetString(apiHost),
+		Port: viper.GetInt(apiPort),
+	}
 }

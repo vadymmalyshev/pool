@@ -24,6 +24,10 @@ portal:
   client_id: "portal"
   client_secret: "portal-secret"
 
+api:
+  port: 3003
+  host: "localhost"
+
 admin:
   port: 3002
   host: "admin.local"
