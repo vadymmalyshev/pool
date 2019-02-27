@@ -11,8 +11,8 @@ import (
 // Migrate creates tables and relations by gorm models
 func Migrate(db *gorm.DB) error {
 	tables := []interface{}{
-		&WalletModel{},
-		&CoinModel{},
+		&Wallet{},
+		&Coin{},
 	}
 
 	var tableNames string
@@ -29,7 +29,7 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	err = AddForeignKey(db, &CoinModel{}, &WalletModel{}, "CoinID")
+	err = AddForeignKey(db, &Coin{}, &Wallet{}, "CoinID")
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,11 @@
 package config
 
 import (
+	"os"
+	"path"
+	"runtime"
+	"strings"
+
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
 	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
@@ -40,6 +45,9 @@ const (
 	hydraClientSecret = "hydra.client_secret"
 )
 
+// AdminPrefix represents url prefix for admin panel
+const AdminPrefix = "/admin"
+
 type admin struct {
 	Server      server.Config
 	HydraClient hydraclient.Config
@@ -48,17 +56,20 @@ type admin struct {
 var (
 	AuthSignKey string
 	Redis       redis.Config
-	DB          database.Config
+	DB, IDPDB   database.Config
 
 	DBConn, IDPDBConn string
-
-	AdminPrefix = "/admin"
 
 	Admin admin
 	Hydra hydra.Config
 )
 
 func init() {
+	_, filename, _, _ := runtime.Caller(0)
+	hiveonPoolDir := path.Join(path.Dir(filename), "..")
+
+	os.Setenv("HIVEON_POOL", hiveonPoolDir)
+
 	viper.AddConfigPath("$HOME/config")
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("./config")
@@ -75,8 +86,8 @@ func init() {
 	Admin.Server = server.Config{
 		Host:     viper.GetString("admin.host"),
 		Port:     viper.GetInt("admin.port"),
-		CertFile: viper.GetString("admin.certs.pem"),
-		KeyFile:  viper.GetString("admin.certs.key"),
+		CertFile: strings.Replace(viper.GetString("admin.certs.pem"), "$HIVEON_POOL", hiveonPoolDir, -1),
+		KeyFile:  strings.Replace(viper.GetString("admin.certs.key"), "$HIVEON_POOL", hiveonPoolDir, -1),
 	}
 	if err := Admin.Server.Validate(); err != nil {
 		logrus.Panicf("Admin server configuration error: %s", err)
@@ -119,4 +130,15 @@ func init() {
 		Name:      viper.GetString(dbName),
 		EnableLog: viper.GetBool(dbLog),
 	}
+
+	IDPDB = database.Config{
+		Host:      viper.GetString(idpdbHost),
+		Port:      viper.GetInt(idpdbPort),
+		EnableSSL: viper.GetBool(idpdbSSLMode),
+		User:      viper.GetString(idpdbUser),
+		Pass:      viper.GetString(idpdbPass),
+		Name:      viper.GetString(idpdbName),
+		EnableLog: viper.GetBool(idpdbLog),
+	}
+
 }

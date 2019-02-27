@@ -40,5 +40,5 @@ func (c Config) Validate() error {
 
 // Addr returns server address
 func (c Config) Addr() string {
-	return fmt.Sprintf("https://%s:%d/", c.Host, c.Port)
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }

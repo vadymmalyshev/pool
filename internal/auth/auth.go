@@ -97,13 +97,8 @@ func (t *token) String() string {
 	return fmt.Sprintf("tokens: %s expire at: %s", t.Access(), t.ExpiryTime())
 }
 
-// Google returns a new Google OAuth 2.0 backend endpoint.
-func Google(conf *oauth2.Config) gin.HandlerFunc {
-	return NewOAuth2Provider(conf)
-}
-
-// NewOAuth2Provider returns a generic OAuth 2.0 backend endpoint.
-func NewOAuth2Provider(conf *oauth2.Config) gin.HandlerFunc {
+// IDP returns a new Google OAuth 2.0 backend endpoint.
+func IDP(conf *oauth2.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Method == "GET" {
 			switch c.Request.URL.Path {
@@ -210,7 +205,7 @@ func extractPath(next string) string {
 	return n.Path
 }
 
-func GoogleAuthConfig() *oauth2.Config {
+func AuthConfig() *oauth2.Config {
 
 	conf = &oauth2.Config{
 		ClientID:     config.Admin.HydraClient.ClientID,
@@ -225,12 +220,13 @@ func GoogleAuthConfig() *oauth2.Config {
 	return conf
 }
 
-func GoogleAuthFromConfig() gin.HandlerFunc {
+func CheckAccess() gin.HandlerFunc {
 	// casbin
-	a_redis := redis.Adapter(config.Redis)
-	e = casbin.NewEnforcer("casbin/authz_model.conf", a_redis)
+	logrus.Info("created adapter and enforcer")
+	a := redis.Adapter(config.Redis)
+	e = NewAccessEnforcer(a)
 
-	return Google(GoogleAuthConfig())
+	return IDP(AuthConfig())
 }
 
 func getScopes() []string {

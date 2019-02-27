@@ -1,12 +1,17 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"fmt"
 
-// WalletModel represents wallet db model
-type WalletModel struct {
+	"git.tor.ph/hiveon/pool/config"
+	"github.com/jinzhu/gorm"
+)
+
+// Wallet represents wallet db model
+type Wallet struct {
 	gorm.Model
 	Address string `gorm:"not null"`
-	Coin    CoinModel
+	Coin    Coin
 	CoinID  uint `gorm:"index:idx_coin_id"`
 }
 
@@ -15,18 +20,26 @@ const (
 	tableNameCoin   = "coins"
 )
 
-// TableName represent WalletModel table name. Used by Gorm
-func (WalletModel) TableName() string {
+// TableName represent Wallet table name. Used by Gorm
+func (Wallet) TableName() string {
 	return tableNameWallet
 }
 
-// CoinModel represents coin db model
-type CoinModel struct {
+func (Wallet) AdminPath() string {
+	return fmt.Sprintf("%s/%s", config.AdminPrefix, tableNameWallet)
+}
+
+// Coin represents coin db model
+type Coin struct {
 	gorm.Model
 	Name string `gorm:"not null"`
 }
 
-// TableName represent CoinModel table name. Used by Gorm
-func (CoinModel) TableName() string {
+// TableName represent Coin table name. Used by Gorm
+func (Coin) TableName() string {
 	return tableNameCoin
+}
+
+func (Coin) AdminPath() string {
+	return fmt.Sprintf("%s/%s", config.AdminPrefix, tableNameCoin)
 }

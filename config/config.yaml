@@ -31,8 +31,8 @@ admin:
   client_secret: "admin-secret"    
   callback: "https://admin.local:3002/callback"
   certs:
-    key: "./certs/hiveon.local.key"
-    pem: "./certs/hiveon.local.pem"
+    key: "$HIVEON_POOL/config/certs/admin.local.key"
+    pem: "$HIVEON_POOL/config/certs/admin.local.pem"
   db:
     host: "localhost"
     port: 54320
