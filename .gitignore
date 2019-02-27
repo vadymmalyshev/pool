@@ -53,5 +53,3 @@ vendor/*
 .DS_Store
 
 *_env
-
-.idea/
