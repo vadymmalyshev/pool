@@ -1,79 +1,33 @@
 package api
 
 import (
-	"git.tor.ph/hiveon/pool/config"
+	. "git.tor.ph/hiveon/pool/internal/api/service"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	 kithttp "github.com/go-kit/kit/transport/http"
-	"net/http"
-	"context"
-	"encoding/json"
 )
 
-type PoolHandler struct {
-	config      *config.PoolConfig
-
+type PoolAPI struct {
+	poolService PoolService
 }
 
-func New(config *config.PoolConfig) *PoolHandler {
-	return &PoolHandler{config}
+func New() *PoolAPI {
+	return &PoolAPI{poolService:NewPoolService()}
 }
 
-func (h *PoolHandler) log() *logrus.Logger {
+func (h *PoolAPI) log() *logrus.Logger {
 	return h.config.Log
 }
 
-func (h *PoolHandler) Bind(r *gin.Engine) {
-	h.MakePoolHandlers(r)
-}
-
-func (h *PoolHandler) MakePoolHandlers(r *gin.Engine) {
-
-	opts := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(encodeError),
+func (h *PoolAPI) handleGetIndex() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(200, h.poolService.GetIndex())
 	}
-
-	router := mux.NewRouter()
-
-	poolGetIndexHandler := kithttp.NewServer(
-		poolGetIndexEndpoint(),
-		decodeEmptyRequest,
-		encodeResponse, opts...,
-	)
-	router.Handle("/api/pool/index", poolGetIndexHandler).Methods("GET")
-
-	poolGetIncomeHistoryHandler := kithttp.NewServer(
-		poolGetIncomeHistoryEndpoint(),
-		decodeEmptyRequest,
-		encodeResponse, opts...,
-	)
-	router.Handle("/api/pool/incomeHistory", poolGetIncomeHistoryHandler).Methods("GET")
-
-	r.Use(gin.WrapH(router))
 }
 
-func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	switch err {
-	default:
-		w.WriteHeader(http.StatusInternalServerError)
+func (h *PoolAPI) handleGetIncomeHistory() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(200, h.poolService.GetIncomeHistory())
 	}
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"error": err.Error(),
-	})
 }
 
-func decodeEmptyRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	return r, nil
-}
-
-func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
-	//log.Info(response)
-	return json.NewEncoder(w).Encode(response)
-}
 

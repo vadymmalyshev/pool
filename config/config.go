@@ -1,8 +1,6 @@
 package config
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"os"
 	"path"
 	"runtime"
@@ -11,7 +9,7 @@ import (
 	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
-	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
+	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
 	"git.tor.ph/hiveon/pool/internal/platform/redis"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
 
@@ -45,6 +43,24 @@ const (
 )
 
 const (
+	sequelize2DBHost    = "idp.db.host"
+	sequelize2DBPort    = "idp.db.port"
+	sequelize2DBSSLMode = "idp.db.sslmode"
+	sequelize2DBUser    = "idp.db.user"
+	sequelize2DBPass    = "idp.db.password"
+	sequelize2DBName    = "idp.db.name"
+)
+
+const (
+	sequelize3DBHost    = "idp.db.host"
+	sequelize3DBPort    = "idp.db.port"
+	sequelize3DBSSLMode = "idp.db.sslmode"
+	sequelize3DBUser    = "idp.db.user"
+	sequelize3DBPass    = "idp.db.password"
+	sequelize3DBName    = "idp.db.name"
+)
+
+const (
 	influxHost = "influx.host"
 	influxPort = "influx.port"
 	influxUser = "influx.user"
@@ -68,16 +84,12 @@ type admin struct {
 	HydraClient hydraclient.Config
 }
 
-type PoolConfig struct {
-	DB     *gorm.DB
-	Router *gin.Engine
-	Log    *logrus.Logger
-}
-
 var (
 	AuthSignKey string
+	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
+	HashrateCul, HashrateCulDivider string
 	Redis       redis.Config
-	DB, IDPDB   database.Config
+	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB   database.Config
 
 	DBConn, IDPDBConn string
 
@@ -134,6 +146,28 @@ func init() {
 		panic("Token signing key must be at least 32 characters")
 	}
 
+	WorkerState = viper.GetString("app.config.pool.workerState")
+	PoolZoom = viper.GetString("app.config.pool.poolZoom")
+	ZoomConfigTime = viper.GetString("ZOOM_CONFIG.d.time")
+	ZoomConfigZoom = viper.GetString("ZOOM_CONFIG.d.zoom")
+	WorkerConfigTime = viper.GetString("WORKER_STAT_CONFIG.d.time")
+	WorkerConfigZoom = viper.GetString("WORKER_STAT_CONFIG.d.zoom")
+
+	HashrateCul = viper.GetString("app.config.pool.hashrate.hashrateCul")
+	if HashrateCul == "" {
+		panic("hashrateCul is missing from configuration")
+	}
+	HashrateCulDivider = viper.GetString("app.config.pool.hashrate.hashrateCulDivider")
+	if HashrateCulDivider == "" {
+		panic("hashrateCulDivider is missing from configuration")
+	}
+
+	// influx
+	AuthSignKey = viper.GetString("auth.sign_key")
+	AuthSignKey = viper.GetString("auth.sign_key")
+	AuthSignKey = viper.GetString("auth.sign_key")
+	AuthSignKey = viper.GetString("auth.sign_key")
+
 	Redis = redis.Config{
 		Host: viper.GetString("redis.host"),
 		Port: viper.GetInt("redis.port"),
@@ -162,6 +196,31 @@ func init() {
 		Pass:      viper.GetString(idpdbPass),
 		Name:      viper.GetString(idpdbName),
 		EnableLog: viper.GetBool(idpdbLog),
+	}
+
+	Sequelize2DB = database.Config{
+		Host:      viper.GetString(sequelize2DBHost),
+		Port:      viper.GetInt(sequelize2DBPort),
+		EnableSSL: viper.GetBool(sequelize2DBSSLMode),
+		User:      viper.GetString(sequelize2DBUser),
+		Pass:      viper.GetString(sequelize2DBPass),
+		Name:      viper.GetString(sequelize2DBName),
+	}
+
+	Sequelize3DB = database.Config{
+		Host:      viper.GetString(sequelize3DBHost),
+		Port:      viper.GetInt(sequelize3DBPort),
+		EnableSSL: viper.GetBool(sequelize3DBSSLMode),
+		User:      viper.GetString(sequelize3DBUser),
+		Pass:      viper.GetString(sequelize3DBPass),
+		Name:      viper.GetString(sequelize3DBName),
+	}
+
+	InfluxDB = database.Config{
+		Host:      viper.GetString(influxHost),
+		Port:      viper.GetInt(influxPort),
+		User:      viper.GetString(influxUser),
+		Pass:      viper.GetString(influxPass),
 	}
 
 	API = api.Config{

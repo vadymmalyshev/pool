@@ -47,3 +47,13 @@ func (c Config) Connection() string {
 		c.Name,
 		c.Pass)
 }
+
+// Connection returns db connection string
+func (c Config) MySQLConnection() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+		c.User,
+		c.Pass,
+		c.Host,
+		c.Port,
+		c.Name)
+}
