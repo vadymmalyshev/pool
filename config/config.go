@@ -1,6 +1,8 @@
 package config
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"os"
 	"path"
 	"runtime"
@@ -64,6 +66,12 @@ const AdminPrefix = "/admin"
 type admin struct {
 	Server      server.Config
 	HydraClient hydraclient.Config
+}
+
+type PoolConfig struct {
+	DB     *gorm.DB
+	Router *gin.Engine
+	Log    *logrus.Logger
 }
 
 var (

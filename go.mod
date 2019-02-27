@@ -11,9 +11,12 @@ require (
 	github.com/gin-contrib/sessions v0.0.0-20190226023029-1532893d996f
 	github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74 // indirect
 	github.com/gin-gonic/gin v1.3.0
+	github.com/go-kit/kit v0.8.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
+	github.com/gorilla/mux v1.6.2
 	github.com/influxdata/influxdb1-client v0.0.0-20190124185755-16c852ea613f
 	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
