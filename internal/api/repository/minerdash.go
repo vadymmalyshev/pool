@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/influxdata/influxdb1-client"
 	"git.tor.ph/hiveon/pool/config"
-	influx "git.tor.ph/hiveon/pool/internal/platform/influx"
+	influx "git.tor.ph/hiveon/pool/internal/platform/database/influx"
 	. "github.com/influxdata/influxdb1-client/models"
 	log "github.com/sirupsen/logrus"
 

@@ -3,32 +3,15 @@ package minerdash
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/influxdata/influxdb1-client"
+
+	client "github.com/influxdata/influxdb1-client"
 	. "github.com/influxdata/influxdb1-client/models"
 	log "github.com/sirupsen/logrus"
-	. "hiveon-api/utils"
+
+	// . "hiveon-api/utils"
 	"net/url"
 	"strings"
 )
-
-type IMinerdashRepository interface {
-	GetPoolLatestShare() Row
-	GetPoolWorker() Row
-	GetPoolMiner() Row
-	GetETHHashrate() IncomeCurrency
-	GetShares(walletId string, workerId string) Row
-	GetLocalHashrateResult(walletId string, workerId string) Row
-	GetHashrate(walletId string, workerId string) RepoHashrate
-	GetCountHistory(walletId string) Row
-	GetHashrate20m(walletId string, workerId string) client.Result
-	GetAvgHashrate1d(walletId string, workerId string) client.Result
-	GetWorkers24hStatistic(walletId string, workerId string) client.Result
-	GetWorkersWalletsMapping24hStatistic() client.Result
-}
-
-type MinerdashRepository struct {
-	influxClient *client.Client
-}
 
 type IncomeCurrency struct {
 	CNY float64
@@ -135,7 +118,6 @@ func (m *MinerdashRepository) GetPoolMiner() Row {
 	return m.querySingle(workerSQL)
 }
 
-
 func (m *MinerdashRepository) GetETHHashrate() IncomeCurrency {
 	poolZoom := GetConfig().GetString("app.config.pool.poolZoom")
 	sql := fmt.Sprintf("select mean(difficulty) as difficulty,mean(cny_float) as cny, mean(usd) as usd, "+
@@ -156,12 +138,12 @@ func (m *MinerdashRepository) GetETHHashrate() IncomeCurrency {
 func (m *MinerdashRepository) GetShares(walletId string, workerId string) Row {
 	time := GetConfig().GetString("ZOOM_CONFIG.d.time")
 	zoom := GetConfig().GetString("ZOOM_CONFIG.d.zoom")
-	sql := "select sum(invalidShares) as invalidShares, sum(validShares) as validShares, sum(staleShares) "+
+	sql := "select sum(invalidShares) as invalidShares, sum(validShares) as validShares, sum(staleShares) " +
 		"as staleShares from two_hours.worker where "
 	if len(strings.TrimSpace(workerId)) == 0 {
-		sql = fmt.Sprintf(sql + "wallet='%s' and time>now()-%s group by time(%s) fill(0)", walletId, time, zoom)
+		sql = fmt.Sprintf(sql+"wallet='%s' and time>now()-%s group by time(%s) fill(0)", walletId, time, zoom)
 	} else {
-		sql = fmt.Sprintf(sql + "wallet='%s' and rig='%s' and time>now()-%s group by time(%s) fill(0)", walletId, workerId, time, zoom)
+		sql = fmt.Sprintf(sql+"wallet='%s' and rig='%s' and time>now()-%s group by time(%s) fill(0)", walletId, workerId, time, zoom)
 	}
 	res := m.querySingle(sql)
 	if res.Values != nil {
@@ -180,10 +162,10 @@ func (m *MinerdashRepository) GetLocalHashrateResult(walletId string, workerId s
 	zoom := GetConfig().GetString("ZOOM_CONFIG.d.zoom")
 	sql := "select sum(localHashrate) as localHashrate from a_month.miner_worker where "
 	if workerId == "" {
-		sql = fmt.Sprintf(sql +  "wallet='%s' "+
+		sql = fmt.Sprintf(sql+"wallet='%s' "+
 			"and time>now()-%s group by time(%s) fill(0)", walletId, time, zoom)
 	} else {
-		sql = fmt.Sprintf(sql +  "wallet='%s' "+
+		sql = fmt.Sprintf(sql+"wallet='%s' "+
 			"and rig='%s' and time>now()-%s group by time(%s) fill(0)", walletId, workerId, time, zoom)
 	}
 
@@ -204,12 +186,12 @@ func (m *MinerdashRepository) GetHashrate(walletId string, workerId string) Repo
 	sql := "select mean(validShares) as validShares from a_year.miner where "
 	var hashrateSql, meanHashRateSql string
 
-	if  workerId != "" {
-		hashrateSql = fmt.Sprintf(sql + "wallet='%s' and rig='%s' and time>now()-1h and time<now()-25m", walletId, workerId)
-		meanHashRateSql = fmt.Sprintf(sql + "wallet='%s' and token='' and rig='%s' and time>now()-%s and time<now()-25m", walletId, workerId, poolZoom)
+	if workerId != "" {
+		hashrateSql = fmt.Sprintf(sql+"wallet='%s' and rig='%s' and time>now()-1h and time<now()-25m", walletId, workerId)
+		meanHashRateSql = fmt.Sprintf(sql+"wallet='%s' and token='' and rig='%s' and time>now()-%s and time<now()-25m", walletId, workerId, poolZoom)
 	} else {
-		hashrateSql = fmt.Sprintf(sql + "wallet='%s' and time>now()-1h and time<now()-25m", walletId)
-		meanHashRateSql = fmt.Sprintf(sql + "wallet='%s' and token='' and time>now()-%s and time<now()-25m", walletId, poolZoom)
+		hashrateSql = fmt.Sprintf(sql+"wallet='%s' and time>now()-1h and time<now()-25m", walletId)
+		meanHashRateSql = fmt.Sprintf(sql+"wallet='%s' and token='' and time>now()-%s and time<now()-25m", walletId, poolZoom)
 	}
 
 	return RepoHashrate{Hashrate: m.queryFloatSingle(hashrateSql), Hashrate24H: m.queryFloatSingle(meanHashRateSql)}
@@ -241,13 +223,13 @@ func (m *MinerdashRepository) GetCountHistory(walletId string) Row {
 }
 
 func (m *MinerdashRepository) GetHashrate20m(walletId string, workerId string) client.Result {
-	sql := "select sum(validShares) as validShares,sum(invalidShares) as invalidShares,sum(staleShares)"+
+	sql := "select sum(validShares) as validShares,sum(invalidShares) as invalidShares,sum(staleShares)" +
 		" as staleShares,sum(originValidShares) as originValidShares from two_hours.worker where "
 
 	if workerId == "" {
-		sql = fmt.Sprintf(sql + "wallet='%s' and time > now()-20m and time <= now() group by rig", walletId)
+		sql = fmt.Sprintf(sql+"wallet='%s' and time > now()-20m and time <= now() group by rig", walletId)
 	} else {
-		sql = fmt.Sprintf(sql + "wallet='%s' and rig='%s' and time > now()-20m and time <= now() group by rig", walletId, workerId)
+		sql = fmt.Sprintf(sql+"wallet='%s' and rig='%s' and time > now()-20m and time <= now() group by rig", walletId, workerId)
 	}
 
 	return m.query(sql)
@@ -255,13 +237,13 @@ func (m *MinerdashRepository) GetHashrate20m(walletId string, workerId string) c
 
 func (m *MinerdashRepository) GetAvgHashrate1d(walletId string, workerId string) client.Result {
 	zoom := GetConfig().GetString("app.config.pool.poolZoom")
-	sql := "select mean(validShares) as validShares, mean(invalidShares) as invalidShares, mean(staleShares) as staleShares,"+
+	sql := "select mean(validShares) as validShares, mean(invalidShares) as invalidShares, mean(staleShares) as staleShares," +
 		" mean(localHashrate) as localHashrate from a_month.miner_worker where "
 
 	if len(strings.TrimSpace(workerId)) == 0 {
-		sql = fmt.Sprintf(sql + "wallet='%s' and time>now()-%s group by rig", walletId, zoom)
+		sql = fmt.Sprintf(sql+"wallet='%s' and time>now()-%s group by rig", walletId, zoom)
 	} else {
-		sql = fmt.Sprintf(sql + "wallet='%s' and rig='%s' and time>now()-%s group by rig", walletId, workerId, zoom)
+		sql = fmt.Sprintf(sql+"wallet='%s' and rig='%s' and time>now()-%s group by rig", walletId, workerId, zoom)
 	}
 
 	return m.query(sql)
@@ -270,15 +252,15 @@ func (m *MinerdashRepository) GetAvgHashrate1d(walletId string, workerId string)
 func (m *MinerdashRepository) GetWorkers24hStatistic(walletId string, workerId string) client.Result {
 	time := GetConfig().GetString("WORKER_STAT_CONFIG.d.time")
 	zoom := GetConfig().GetString("WORKER_STAT_CONFIG.d.zoom")
-	sql := "select sum(validShares) as validShares,sum(invalidShares) as invalidShares,sum(staleShares)"+
+	sql := "select sum(validShares) as validShares,sum(invalidShares) as invalidShares,sum(staleShares)" +
 		" as staleShares from a_month.miner_worker where "
 	if len(strings.TrimSpace(walletId)) > 0 {
 		sql = fmt.Sprintf(sql+"wallet='%s' and ", walletId)
 	}
 	if len(strings.TrimSpace(workerId)) == 0 {
-		sql = fmt.Sprintf(sql + "time>now()-%s group by time(%s), rig", time, zoom)
+		sql = fmt.Sprintf(sql+"time>now()-%s group by time(%s), rig", time, zoom)
 	} else {
-		sql = fmt.Sprintf(sql + "rig='%s' and time>now()-%s group by time(%s), rig", workerId, time, zoom)
+		sql = fmt.Sprintf(sql+"rig='%s' and time>now()-%s group by time(%s), rig", workerId, time, zoom)
 	}
 
 	return m.query(sql)
@@ -287,11 +269,9 @@ func (m *MinerdashRepository) GetWorkers24hStatistic(walletId string, workerId s
 func (m *MinerdashRepository) GetWorkersWalletsMapping24hStatistic() client.Result {
 	time := GetConfig().GetString("WORKER_STAT_CONFIG.d.time")
 
-	sql := "select sum(validShares) as validShares,sum(invalidShares) as invalidShares,sum(staleShares)"+
+	sql := "select sum(validShares) as validShares,sum(invalidShares) as invalidShares,sum(staleShares)" +
 		" as staleShares from a_month.miner_worker where "
-	sql = fmt.Sprintf(sql + "time>now()-%s group by rig, wallet", time)
+	sql = fmt.Sprintf(sql+"time>now()-%s group by rig, wallet", time)
 
 	return m.query(sql)
 }
-
-
