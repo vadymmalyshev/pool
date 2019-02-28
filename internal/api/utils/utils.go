@@ -21,8 +21,8 @@ func init() {
 	v = viper.New()
 	v.SetConfigType("yaml")
 
-	v.AddConfigPath(".././conf/")
-	v.AddConfigPath("./conf/")
+	v.AddConfigPath(".././config/")
+	v.AddConfigPath("./config/")
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	. "git.tor.ph/hiveon/pool/internal/api/response"
 	. "git.tor.ph/hiveon/pool/internal/api/repository"
+	log "github.com/sirupsen/logrus"
 )
 
 type WalletService interface {
