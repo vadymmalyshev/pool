@@ -31,7 +31,7 @@ func main() {
 	r.GET("/api/miner/ETH/{walletId}", walletHandler.HandleGetWallet())
 	r.GET("/api/miner/ETH/{walletId}/{workerId}", walletHandler.HandleGetWalletWorker())
 
-	r.GET("/api/miner/featureIncome", minerHandler.GetFutureIncome())
+	r.GET("/api/miner/futureIncome", minerHandler.GetFutureIncome())
 	r.GET("/api/miner/{walletId}/billInfo",minerHandler.GetBillInfo())
 	r.GET("/api/miner/{walletId}/bill",minerHandler.GetBill())
 	r.GET("/api/miner/{walletId}/shares",minerHandler.GetShares())

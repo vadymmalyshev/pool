@@ -36,7 +36,7 @@ func NewBlockRepository() IBlockRepository {
 
 func (m *BlockRepository) queryFloatSingle(query string) float64 {
 	var result float64
-	row := m.client.Raw(query)
+	row := m.client.Raw(query).Row()
 	row.Scan(&result)
 	return result
 }

@@ -64,6 +64,7 @@ const (
 	influxPort = "influx.port"
 	influxUser = "influx.user"
 	influxPass = "influx.password"
+	influxName = "influx.name"
 )
 
 const (
@@ -217,6 +218,7 @@ func init() {
 		Port: viper.GetInt(influxPort),
 		User: viper.GetString(influxUser),
 		Pass: viper.GetString(influxPass),
+		Name: viper.GetString(influxName),
 	}
 
 	API = api.Config{

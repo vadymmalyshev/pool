@@ -119,7 +119,7 @@ func (m *MinerdashRepository) GetPoolMiner() Row {
 
 
 func (m *MinerdashRepository) GetETHHashrate() IncomeCurrency {
-	sql := fmt.Sprintf("select mean(difficulty) as difficulty,mean(cny) as cny, mean(usd) as usd, "+
+	sql := fmt.Sprintf("select mean(difficulty) as difficulty,mean(cny_float) as cny, mean(usd) as usd, "+
 		"mean(btc) as btc from a_year.eth_stats where time>now()-%s", config.PoolZoom)
 
 	res := m.querySingle(sql)

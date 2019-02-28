@@ -48,7 +48,7 @@ portal:
   client_secret: "portal-secret"
 
 api:
-  port: 3003
+  port: 8090
   host: "localhost"
 
 admin:
@@ -61,12 +61,12 @@ admin:
     key: "$HIVEON_POOL/config/certs/admin.local.key"
     pem: "$HIVEON_POOL/config/certs/admin.local.pem"
   db:
-    host: "localhost"
-    port: 54320
-    name: "hiveon_dev"
-    user: "idp"
+    host: "116.203.56.122"
+    port: 5432
+    name: "oauth"
+    user: "postgres"
     sslmode: false
-    password: "8GWbz2JF4FMe1Q8X"
+    password: "postgres"
 
 auth:
   sign_key: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
@@ -110,10 +110,6 @@ WORKER_STAT_CONFIG:
   d:
     time: "24h"
     zoom: "5m"
-
-api:
-  host:
-  port: 8090
 
 idp_api: "http://localhost:3000/api"
 
