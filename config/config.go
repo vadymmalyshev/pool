@@ -88,6 +88,7 @@ var (
 	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
 	HashrateCul, HashrateCulDivider                                                           string
 	PgOneDay                                                                                  string
+	UseCasbin																			      bool
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
@@ -159,6 +160,7 @@ func init() {
 	checkValueEmpty(HashrateCulDivider)
 	PgOneDay = viper.GetString("app.config.pool.pgOneDay")
 	checkValueEmpty(PgOneDay)
+	UseCasbin = viper.GetBool("security.useCasbin")
 	// influx
 	AuthSignKey = viper.GetString("auth.sign_key")
 

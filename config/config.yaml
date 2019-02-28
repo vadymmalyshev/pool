@@ -71,6 +71,10 @@ admin:
 auth:
   sign_key: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
 
+security:
+  publicURL:  "/api/miner"
+  securedURL: "/api/private"
+  useCasbin: true
 
 mail:
   active: "true"
@@ -110,4 +114,6 @@ WORKER_STAT_CONFIG:
 api:
   host:
   port: 8090
+
+idp_api: "http://localhost:3000/api"
 
