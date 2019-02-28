@@ -9,7 +9,7 @@ import (
 
 // Connect returns initialized connection to redis
 func Connect(c database.Config) (redis.Conn, error) {
-	conn, err := redis.Dial("tcp", c.Connection())
+	conn, err := redis.Dial("tcp", Connection(c))
 	if err != nil {
 		return nil, err
 	}
