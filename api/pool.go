@@ -9,7 +9,7 @@ type PoolAPI struct {
 	poolService PoolService
 }
 
-func New() *PoolAPI {
+func NewPoolAPI() *PoolAPI {
 	return &PoolAPI{poolService:NewPoolService()}
 }
 

@@ -17,10 +17,13 @@ func main() {
 	errs := make(chan error, 2)
 
 	r := gin.Default()
-	handler := api.New()
+	poolHandler := api.NewPoolAPI()
+	blockHandler := api.NewBlockAPI()
 
-	r.GET("/api/pool/index", handler.HandleGetIndex())
-	r.GET("/api/pool/incomeHistory", handler.HandleGetIncomeHistory())
+	r.GET("/api/pool/index", poolHandler.HandleGetIndex())
+	r.GET("/api/pool/incomeHistory", poolHandler.HandleGetIncomeHistory())
+
+	r.GET("/api/block/count24h", blockHandler.HandleGetBlockCount())
 
 	go func() {
 		errs <- r.Run(fmt.Sprintf(":%d", config.API.Port))

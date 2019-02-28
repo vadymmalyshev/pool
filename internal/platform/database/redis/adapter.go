@@ -7,7 +7,7 @@ import (
 
 // Adapter returns adapter to redis
 func Adapter(c database.Config) *redisadapter.Adapter {
-	adaper := redisadapter.NewAdapter("tcp", c.Connection())
+	adaper := redisadapter.NewAdapter("tcp", Connection(c))
 
 	return adaper
 }
