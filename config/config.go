@@ -87,6 +87,7 @@ var (
 	AuthSignKey                                                                               string
 	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
 	HashrateCul, HashrateCulDivider                                                           string
+	PgOneDay                                                                                  string
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
@@ -153,14 +154,11 @@ func init() {
 	WorkerConfigZoom = viper.GetString("WORKER_STAT_CONFIG.d.zoom")
 
 	HashrateCul = viper.GetString("app.config.pool.hashrate.hashrateCul")
-	if HashrateCul == "" {
-		panic("hashrateCul is missing from configuration")
-	}
+	checkValueEmpty(HashrateCul)
 	HashrateCulDivider = viper.GetString("app.config.pool.hashrate.hashrateCulDivider")
-	if HashrateCulDivider == "" {
-		panic("hashrateCulDivider is missing from configuration")
-	}
-
+	checkValueEmpty(HashrateCulDivider)
+	PgOneDay = viper.GetString("app.config.pool.pgOneDay")
+	checkValueEmpty(PgOneDay)
 	// influx
 	AuthSignKey = viper.GetString("auth.sign_key")
 
@@ -222,5 +220,11 @@ func init() {
 	API = api.Config{
 		Host: viper.GetString(apiHost),
 		Port: viper.GetInt(apiPort),
+	}
+}
+
+func checkValueEmpty(val string) {
+	if val == "" {
+		panic(val + " missing from configuration")
 	}
 }
