@@ -12,11 +12,7 @@ type PoolAPI struct {
 func New() *PoolAPI {
 	return &PoolAPI{poolService:NewPoolService()}
 }
-/*
-func (h *PoolAPI) log() *logrus.Logger {
-	return h.config.Log
-}
-*/
+
 func (h *PoolAPI) HandleGetIndex() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.JSON(200, h.poolService.GetIndex())

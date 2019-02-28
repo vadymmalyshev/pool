@@ -9,8 +9,7 @@ import (
 	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
-	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
-	"git.tor.ph/hiveon/pool/internal/platform/redis"
+	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
 
 	"github.com/sirupsen/logrus"
@@ -88,7 +87,7 @@ var (
 	AuthSignKey                                                                               string
 	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
 	HashrateCul, HashrateCulDivider                                                           string
-	Redis                                                                                     redis.Config
+	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
 	DBConn, IDPDBConn string
@@ -165,10 +164,10 @@ func init() {
 	// influx
 	AuthSignKey = viper.GetString("auth.sign_key")
 
-	Redis = redis.Config{
+	Redis = database.Config{
 		Host: viper.GetString("redis.host"),
 		Port: viper.GetInt("redis.port"),
-		DB:   viper.GetString("redis.db"),
+		Name:   viper.GetString("redis.db"),
 		Pass: viper.GetString("redis.password"),
 	}
 	if err := Redis.Validate(); err != nil {
