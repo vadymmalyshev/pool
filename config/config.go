@@ -43,21 +43,21 @@ const (
 )
 
 const (
-	sequelize2DBHost    = "idp.db.host"
-	sequelize2DBPort    = "idp.db.port"
-	sequelize2DBSSLMode = "idp.db.sslmode"
-	sequelize2DBUser    = "idp.db.user"
-	sequelize2DBPass    = "idp.db.password"
-	sequelize2DBName    = "idp.db.name"
+	sequelize2DBHost    = "sequelize2.host"
+	sequelize2DBPort    = "sequelize2.port"
+	sequelize2DBSSLMode = "sequelize2.sslmode"
+	sequelize2DBUser    = "sequelize2.user"
+	sequelize2DBPass    = "sequelize2.password"
+	sequelize2DBName    = "sequelize2.name"
 )
 
 const (
-	sequelize3DBHost    = "idp.db.host"
-	sequelize3DBPort    = "idp.db.port"
-	sequelize3DBSSLMode = "idp.db.sslmode"
-	sequelize3DBUser    = "idp.db.user"
-	sequelize3DBPass    = "idp.db.password"
-	sequelize3DBName    = "idp.db.name"
+	sequelize3DBHost    = "sequelize3.host"
+	sequelize3DBPort    = "sequelize3.port"
+	sequelize3DBSSLMode = "sequelize3.sslmode"
+	sequelize3DBUser    = "sequelize3.user"
+	sequelize3DBPass    = "sequelize3.password"
+	sequelize3DBName    = "sequelize3.name"
 )
 
 const (

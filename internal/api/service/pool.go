@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 	"reflect"
-	. "git.tor.ph/hiveon/pool/models"
+	. "git.tor.ph/hiveon/pool/internal/api/response"
 	. "git.tor.ph/hiveon/pool/internal/api/repository"
 )
 

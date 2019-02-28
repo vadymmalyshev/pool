@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"git.tor.ph/hiveon/pool/api"
 
 	"os"
 	"os/signal"
@@ -16,6 +17,10 @@ func main() {
 	errs := make(chan error, 2)
 
 	r := gin.Default()
+	handler := api.New()
+
+	r.GET("/api/pool/index", handler.HandleGetIndex())
+	r.GET("/api/pool/incomeHistory", handler.HandleGetIncomeHistory())
 
 	go func() {
 		errs <- r.Run(fmt.Sprintf(":%d", config.API.Port))
@@ -29,3 +34,4 @@ func main() {
 
 	logrus.Info("terminated", <-errs)
 }
+

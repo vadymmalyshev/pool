@@ -21,8 +21,7 @@ type BlockRepository struct {
 }
 
 func GetBlockRepositoryClient() *gorm.DB{
-	db, err := database.Connect(config.Sequelize3DB)
-	defer db.Close()
+	db, err := database.ConnectMySQL(config.Sequelize3DB)
 	if err != nil {
 		log.Panic("failed to init mysql db :", err.Error())
 	}
