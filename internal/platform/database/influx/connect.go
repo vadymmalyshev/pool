@@ -11,7 +11,7 @@ import (
 
 // Connect returns initialized connection to db
 func Connect(c database.Config) (*client.Client, error) {
-	u, err := url.Parse(fmt.Sprintf("http://%s:%s", c.Host, c.Port))
+	u, err := url.Parse(fmt.Sprintf("http://%s:%d", c.Host, c.Port))
 	if err != nil {
 		return nil, err
 	}

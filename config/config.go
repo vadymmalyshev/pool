@@ -9,7 +9,7 @@ import (
 	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
-	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
+	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
 	"git.tor.ph/hiveon/pool/internal/platform/redis"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
 
@@ -85,11 +85,11 @@ type admin struct {
 }
 
 var (
-	AuthSignKey string
+	AuthSignKey                                                                               string
 	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
-	HashrateCul, HashrateCulDivider string
-	Redis       redis.Config
-	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB   database.Config
+	HashrateCul, HashrateCulDivider                                                           string
+	Redis                                                                                     redis.Config
+	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
 	DBConn, IDPDBConn string
 
@@ -164,9 +164,6 @@ func init() {
 
 	// influx
 	AuthSignKey = viper.GetString("auth.sign_key")
-	AuthSignKey = viper.GetString("auth.sign_key")
-	AuthSignKey = viper.GetString("auth.sign_key")
-	AuthSignKey = viper.GetString("auth.sign_key")
 
 	Redis = redis.Config{
 		Host: viper.GetString("redis.host"),
@@ -217,10 +214,10 @@ func init() {
 	}
 
 	InfluxDB = database.Config{
-		Host:      viper.GetString(influxHost),
-		Port:      viper.GetInt(influxPort),
-		User:      viper.GetString(influxUser),
-		Pass:      viper.GetString(influxPass),
+		Host: viper.GetString(influxHost),
+		Port: viper.GetInt(influxPort),
+		User: viper.GetString(influxUser),
+		Pass: viper.GetString(influxPass),
 	}
 
 	API = api.Config{

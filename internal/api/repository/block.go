@@ -2,11 +2,12 @@ package repository
 
 import (
 	"database/sql"
+
 	"git.tor.ph/hiveon/pool/config"
+	"git.tor.ph/hiveon/pool/internal/platform/database"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
-	"git.tor.ph/hiveon/pool/internal/platform/database"
 )
 
 type IBlockRepository interface {
@@ -20,7 +21,7 @@ type BlockRepository struct {
 	client *gorm.DB
 }
 
-func GetBlockRepositoryClient() *gorm.DB{
+func GetBlockRepositoryClient() *gorm.DB {
 	db, err := database.Connect(config.Sequelize3DB)
 	defer db.Close()
 	if err != nil {
@@ -41,27 +42,37 @@ func (m *BlockRepository) queryFloatSingle(query string) float64 {
 }
 
 func (m *BlockRepository) GetIncome24h() float64 {
-	sql := "SELECT avg(expected_earning) * 2160/100000000.0 as income24h" +
-		" FROM expected_earning_result where end_time >= (UNIX_TIMESTAMP() -(24 * 3600))"
+	sql :=
+		`SELECT avg(expected_earning) * 2160/100000000.0 as income24h
+		FROM expected_earning_result 
+		WHERE end_time >= (UNIX_TIMESTAMP() -(24 * 3600))`
+
 	return m.queryFloatSingle(sql)
 }
 
 func (m *BlockRepository) GetIncome7d() float64 {
-	sql := "SELECT avg(expected_earning) * 2160/100000000.0 as income24h" +
-		" FROM expected_earning_result where end_time >= (UNIX_TIMESTAMP() -(7 * 24 * 3600))"
+	sql :=
+		`SELECT avg(expected_earning) * 2160/100000000.0 as income24h
+		FROM expected_earning_result 
+		WHERE end_time >= (UNIX_TIMESTAMP() -(7 * 24 * 3600))`
 	return m.queryFloatSingle(sql)
 }
 
 func (m *BlockRepository) GetIncomeResult() float64 {
-	sql := "SELECT expected_earning * 2160/100000000.0 as income FROM expected_earning_result where end_time >= UNIX_TIMESTAMP() limit 1"
+	sql :=
+		`SELECT expected_earning * 2160/100000000.0 as income 
+	FROM expected_earning_result 
+	WHERE end_time >= UNIX_TIMESTAMP() limit 1`
 	return m.queryFloatSingle(sql)
 }
 
 func (m *BlockRepository) GetIncomeHistory() *sql.Rows {
-	sql := "select start_time,expected_earning as income from expected_earning_result where" +
-		" start_time >= (UNIX_TIMESTAMP() -(24 * 3600))"
-	rows, err := m.client.Raw(sql).Rows()
-	if err != nil {
+	sql :=
+		`SELECT start_time,expected_earning as income 
+		FROM expected_earning_result 
+		WHERE start_time >= (UNIX_TIMESTAMP() -(24 * 3600))`
+
+	if rows, err := m.client.Raw(sql).Rows(); err != nil {
 		log.Error(err)
 	}
 	return rows
