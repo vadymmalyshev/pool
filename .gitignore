@@ -54,5 +54,5 @@ vendor/*
 
 *_env
 
-.idea/
+.idea/*
 .idea
