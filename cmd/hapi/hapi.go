@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"git.tor.ph/hiveon/pool/api"
+	"github.com/casbin/casbin"
+	"github.com/casbin/redis-adapter"
 
 	"os"
 	"os/signal"
@@ -11,12 +13,14 @@ import (
 	"git.tor.ph/hiveon/pool/config"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	 ."git.tor.ph/hiveon/pool/internal/api/middleware"
 )
 
 func main() {
 	errs := make(chan error, 2)
 
 	r := gin.Default()
+
 	poolHandler := api.NewPoolAPI()
 	blockHandler := api.NewBlockAPI()
 	walletHandler := api.NewWalletAPI()
@@ -47,6 +51,8 @@ func main() {
 	r.GET("/api/private/{fid}", userHandler.GetUserWallet())
 	r.POST("/api/private/wallet", userHandler.PostUserWallet())
 
+	initCasbinMiddleware(r)
+
 	go func() {
 		errs <- r.Run(fmt.Sprintf(":%d", config.API.Port))
 	}()
@@ -59,4 +65,11 @@ func main() {
 
 	logrus.Info("terminated", <-errs)
 }
+
+func initCasbinMiddleware(r *gin.Engine) {
+	a_redis := redisadapter.NewAdapter("tcp", config.Redis.Host + ":"+ string(config.Redis.Port))
+	e := casbin.NewEnforcer("internal/casbin/authz_model.conf", a_redis)
+	r.Use(NewAuthorizer(e))
+}
+
 

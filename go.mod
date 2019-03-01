@@ -22,6 +22,7 @@ require (
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/ory/hydra v0.0.0-20181203105159-55654c084cc2
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/otp v1.1.0 // indirect
 	github.com/qor/admin v0.0.0-20190222085910-fdf69a0f6f32
