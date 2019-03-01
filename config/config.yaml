@@ -74,7 +74,7 @@ auth:
 security:
   publicURL:  "/api/miner"
   securedURL: "/api/private"
-  useCasbin: true
+  useCasbin: false
 
 mail:
   active: "true"
@@ -111,5 +111,8 @@ WORKER_STAT_CONFIG:
     time: "24h"
     zoom: "5m"
 
-idp_api: "http://localhost:3000/api"
+pool:
+  workers_api: "http://127.0.0.1:8090/api/private/statistic/workers"
+  mapping_api: "http://127.0.0.1:8090/api/private/statistic/mapping"
+  idp_api: "http://localhost:3000/api"
 

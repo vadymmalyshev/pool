@@ -5,6 +5,7 @@ import (
 	"git.tor.ph/hiveon/pool/api"
 	"github.com/casbin/casbin"
 	"github.com/casbin/redis-adapter"
+	"strconv"
 
 	"os"
 	"os/signal"
@@ -67,7 +68,7 @@ func main() {
 }
 
 func initCasbinMiddleware(r *gin.Engine) {
-	a_redis := redisadapter.NewAdapter("tcp", config.Redis.Host + ":"+ string(config.Redis.Port))
+	a_redis := redisadapter.NewAdapter("tcp", config.Redis.Host + ":"+ strconv.Itoa(config.Redis.Port))
 	e := casbin.NewEnforcer("internal/casbin/authz_model.conf", a_redis)
 	r.Use(NewAuthorizer(e))
 }

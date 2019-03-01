@@ -9,7 +9,7 @@ import (
 )
 
 func GetUserByEmail(email string) (OAuthUser, error) {
-	url := fmt.Sprintf(GetConfig().GetString("idp_api")+"/users/email/%s", email)
+	url := fmt.Sprintf(GetConfig().GetString("pool.idp_api")+"/users/email/%s", email)
 	var user OAuthUser
 	res, err := resty.R().Get(url)
 	if err != nil {
