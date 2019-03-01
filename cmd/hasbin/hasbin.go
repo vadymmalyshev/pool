@@ -1,9 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/casbin"
+	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -16,4 +21,12 @@ func main() {
 	}
 
 	sync.Start(errs)
+
+	go func() {
+		c := make(chan os.Signal)
+		signal.Notify(c, syscall.SIGINT)
+		errs <- fmt.Errorf("%s", <-c)
+	}()
+
+	log.Info("Casbin sync terminated", <-errs)
 }
