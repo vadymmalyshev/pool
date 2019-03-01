@@ -90,12 +90,12 @@ func (repo *HiveosRepository) GetBillInfo(walletId string) RepoBillInfo {
 		log.Error(err)
 	}
 
-	repo.hiveClient.Raw("select create_ts from payments where id=?", payment.paymentId).Scan(&firstTime)
+	repo.hiveClient.Raw("select create_ts from payments where id=?", payment.paymentId).Row().Scan(&firstTime)
 	if err != nil {
 		log.Error(err)
 	}
 
-	repo.hiveClient.Raw("select balance from deposits where miner_wallet =?", walletId).Scan(&balance)
+	repo.hiveClient.Raw("select balance from deposits where miner_wallet =?", walletId).Row().Scan(&balance)
 	if err != nil {
 		log.Error(err)
 	}
@@ -106,7 +106,7 @@ func (repo *HiveosRepository) GetBillInfo(walletId string) RepoBillInfo {
 
 func (repo *HiveosRepository) GetBalance(walletId string) float64 {
 	var res float64
-	err := repo.hiveClient.Raw("select balance from deposits where miner_wallet = ?", walletId).Scan(&res)
+	err := repo.hiveClient.Raw("select balance from deposits where miner_wallet = ?", walletId).Row().Scan(&res)
 	if err != nil {
 		log.Error(err)
 	}
