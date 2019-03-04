@@ -18,3 +18,9 @@ TODO: Remove an admin access to the user which found by email
 ```
 go run ./cmd/hasbin/hadmin.go admin remove <email>
 ```
+
+
+expose remote influx ports to use it as local service
+```
+ssh root@95.216.199.4 -L 8086:127.0.0.1:8086
+```

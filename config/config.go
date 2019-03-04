@@ -6,14 +6,19 @@ import (
 	"runtime"
 	"strings"
 
+	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
-	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
-	"git.tor.ph/hiveon/pool/internal/platform/redis"
+	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+)
+
+const (
+	apiHost = "api.host"
+	apiPort = "api.port"
 )
 
 const (
@@ -37,6 +42,32 @@ const (
 )
 
 const (
+	sequelize2DBHost    = "sequelize2.host"
+	sequelize2DBPort    = "sequelize2.port"
+	sequelize2DBSSLMode = "sequelize2.sslmode"
+	sequelize2DBUser    = "sequelize2.user"
+	sequelize2DBPass    = "sequelize2.password"
+	sequelize2DBName    = "sequelize2.name"
+)
+
+const (
+	sequelize3DBHost    = "sequelize3.host"
+	sequelize3DBPort    = "sequelize3.port"
+	sequelize3DBSSLMode = "sequelize3.sslmode"
+	sequelize3DBUser    = "sequelize3.user"
+	sequelize3DBPass    = "sequelize3.password"
+	sequelize3DBName    = "sequelize3.name"
+)
+
+const (
+	influxHost = "influx.host"
+	influxPort = "influx.port"
+	influxUser = "influx.user"
+	influxPass = "influx.password"
+	influxName = "influx.name"
+)
+
+const (
 	appPort = "app.port"
 	appHost = "app.host"
 
@@ -54,14 +85,20 @@ type admin struct {
 }
 
 var (
-	AuthSignKey string
-	Redis       redis.Config
-	DB, IDPDB   database.Config
+	AuthSignKey                                                                               string
+	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
+	HashrateCul, HashrateCulDivider                                                           string
+	PgOneDay                                                                                  string
+	UseCasbin																			      bool
+	Redis                                                                                     database.Config
+	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
 	DBConn, IDPDBConn string
 
 	Admin admin
 	Hydra hydra.Config
+
+	API api.Config
 )
 
 func init() {
@@ -111,10 +148,27 @@ func init() {
 		panic("Token signing key must be at least 32 characters")
 	}
 
-	Redis = redis.Config{
+	WorkerState = viper.GetString("app.config.pool.workerState")
+	PoolZoom = viper.GetString("app.config.pool.poolZoom")
+	ZoomConfigTime = viper.GetString("ZOOM_CONFIG.d.time")
+	ZoomConfigZoom = viper.GetString("ZOOM_CONFIG.d.zoom")
+	WorkerConfigTime = viper.GetString("WORKER_STAT_CONFIG.d.time")
+	WorkerConfigZoom = viper.GetString("WORKER_STAT_CONFIG.d.zoom")
+
+	HashrateCul = viper.GetString("app.config.pool.hashrate.hashrateCul")
+	checkValueEmpty(HashrateCul)
+	HashrateCulDivider = viper.GetString("app.config.pool.hashrate.hashrateCulDivider")
+	checkValueEmpty(HashrateCulDivider)
+	PgOneDay = viper.GetString("app.config.pool.pgOneDay")
+	checkValueEmpty(PgOneDay)
+	UseCasbin = viper.GetBool("security.useCasbin")
+	// influx
+	AuthSignKey = viper.GetString("auth.sign_key")
+
+	Redis = database.Config{
 		Host: viper.GetString("redis.host"),
 		Port: viper.GetInt("redis.port"),
-		DB:   viper.GetString("redis.db"),
+		Name:   viper.GetString("redis.db"),
 		Pass: viper.GetString("redis.password"),
 	}
 	if err := Redis.Validate(); err != nil {
@@ -141,4 +195,40 @@ func init() {
 		EnableLog: viper.GetBool(idpdbLog),
 	}
 
+	Sequelize2DB = database.Config{
+		Host:      viper.GetString(sequelize2DBHost),
+		Port:      viper.GetInt(sequelize2DBPort),
+		EnableSSL: viper.GetBool(sequelize2DBSSLMode),
+		User:      viper.GetString(sequelize2DBUser),
+		Pass:      viper.GetString(sequelize2DBPass),
+		Name:      viper.GetString(sequelize2DBName),
+	}
+
+	Sequelize3DB = database.Config{
+		Host:      viper.GetString(sequelize3DBHost),
+		Port:      viper.GetInt(sequelize3DBPort),
+		EnableSSL: viper.GetBool(sequelize3DBSSLMode),
+		User:      viper.GetString(sequelize3DBUser),
+		Pass:      viper.GetString(sequelize3DBPass),
+		Name:      viper.GetString(sequelize3DBName),
+	}
+
+	InfluxDB = database.Config{
+		Host: viper.GetString(influxHost),
+		Port: viper.GetInt(influxPort),
+		User: viper.GetString(influxUser),
+		Pass: viper.GetString(influxPass),
+		Name: viper.GetString(influxName),
+	}
+
+	API = api.Config{
+		Host: viper.GetString(apiHost),
+		Port: viper.GetInt(apiPort),
+	}
+}
+
+func checkValueEmpty(val string) {
+	if val == "" {
+		panic(val + " missing from configuration")
+	}
 }

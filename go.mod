@@ -11,14 +11,20 @@ require (
 	github.com/gin-contrib/sessions v0.0.0-20190226023029-1532893d996f
 	github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74 // indirect
 	github.com/gin-gonic/gin v1.3.0
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
+	github.com/go-kit/kit v0.8.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
+	github.com/go-redis/redis v6.15.2+incompatible
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/golang/gddo v0.0.0-20181116215533-9bd4a3295021
 	github.com/gomodule/redigo v2.0.0+incompatible
+	github.com/gorilla/mux v1.6.2
+	github.com/influxdata/influxdb1-client v0.0.0-20190124185755-16c852ea613f
 	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/mileusna/crontab v0.0.0-20180909013013-f182897de5d8
+	github.com/ory/hydra v0.0.0-20181203105159-55654c084cc2
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/otp v1.1.0 // indirect
 	github.com/qor/admin v0.0.0-20190222085910-fdf69a0f6f32
@@ -28,8 +34,10 @@ require (
 	github.com/spf13/afero v1.2.1 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
+	github.com/stretchr/testify v1.3.0
 	golang.org/x/crypto v0.0.0-20190225124518-7f87c0fbb88b // indirect
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd // indirect
 	golang.org/x/oauth2 v0.0.0-20190220154721-9b3c75971fc9
 	golang.org/x/sys v0.0.0-20190225065934-cc5685c2db12 // indirect
+	gopkg.in/resty.v1 v1.11.0
 )

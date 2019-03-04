@@ -10,7 +10,7 @@ import (
 	"git.tor.ph/hiveon/idp/models/users"
 	"git.tor.ph/hiveon/pool/config"
 	internalAdmin "git.tor.ph/hiveon/pool/internal/admin"
-	"git.tor.ph/hiveon/pool/internal/platform/database"
+	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/models"
 
 	"github.com/gin-gonic/gin"
@@ -38,8 +38,8 @@ var cmdMigrate = &cobra.Command{
 }
 
 func doMigrate(cmd *cobra.Command, args []string) {
-	db, err := database.Connect(config.DB)
-	defer db.Close()
+	db, err := postgres.Connect(config.DB)
+
 	if err != nil {
 		logrus.Panicf("failed to init db: %s", err)
 	}
@@ -56,15 +56,13 @@ func addAdmin(cmd *cobra.Command, args []string) {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
-	db, err := database.Connect(config.DB)
-	defer db.Close()
+	db, err := postgres.Connect(config.DB)
 
 	if err != nil {
 		logrus.Panicf("failed to init hiveon db: %s", err)
 	}
 
-	idpdb, err := database.Connect(config.IDPDB)
-	defer idpdb.Close()
+	idpdb, err := postgres.Connect(config.IDPDB)
 
 	if err != nil {
 		logrus.Panicf("failed to init idp db: %s", err)

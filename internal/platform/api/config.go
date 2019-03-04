@@ -1,4 +1,4 @@
-package redis
+package api
 
 import (
 	"errors"
@@ -9,8 +9,6 @@ import (
 type Config struct {
 	Host string
 	Port int
-	DB   string
-	Pass string
 }
 
 // Validate checks that the configuration is valid
@@ -30,7 +28,7 @@ func (c Config) Validate() error {
 	return nil
 }
 
-//Connection returns connection string to redis server
-func (c Config) Connection() string {
+// Addr returns server address
+func (c Config) Addr() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }

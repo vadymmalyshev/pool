@@ -13,6 +13,8 @@ func Migrate(db *gorm.DB) error {
 	tables := []interface{}{
 		&Wallet{},
 		&Coin{},
+		&Worker{},
+		&BillingWorkerStatistic{},
 	}
 
 	var tableNames string

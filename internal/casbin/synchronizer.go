@@ -2,12 +2,11 @@ package casbin
 
 import (
 	"fmt"
+	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"time"
-
 	"git.tor.ph/hiveon/pool/internal/auth"
-
 	"git.tor.ph/hiveon/pool/internal/platform/database"
-	"git.tor.ph/hiveon/pool/internal/platform/redis"
+	"git.tor.ph/hiveon/pool/internal/platform/database/redis"
 	"github.com/casbin/casbin"
 	gormadapter "github.com/casbin/gorm-adapter"
 	redisadapter "github.com/casbin/redis-adapter"
@@ -35,12 +34,12 @@ type Syncronizer struct {
 }
 
 // NewSynchronizer returns Syncronizer
-func NewSynchronizer(dbCfg database.Config, redisCfg redis.Config) (*Syncronizer, error) {
+func NewSynchronizer(dbCfg database.Config, redisCfg database.Config) (*Syncronizer, error) {
 	if err := dbCfg.Validate(); err != nil {
 		return nil, errors.Wrap(err, "invalid database config")
 	}
 
-	db, err := database.Connect(dbCfg)
+	db, err := postgres.Connect(dbCfg)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize db")
@@ -58,7 +57,7 @@ func NewSynchronizer(dbCfg database.Config, redisCfg redis.Config) (*Syncronizer
 
 	redisAdapter := redis.Adapter(redisCfg)
 
-	a := gormadapter.NewAdapter("postgres", dbCfg.Connection(), true)
+	a := gormadapter.NewAdapter("postgres", postgres.Connection(dbCfg), true)
 	enforcer := auth.NewAccessEnforcer(a)
 
 	return &Syncronizer{
