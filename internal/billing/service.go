@@ -1,11 +1,10 @@
-package service
+package billing
 
 import (
-	"git.tor.ph/hiveon/pool/internal/billing/repository"
-	"git.tor.ph/hiveon/pool/internal/billing/utils"
-	"github.com/mileusna/crontab"
 	"git.tor.ph/hiveon/pool/config"
+	"git.tor.ph/hiveon/pool/internal/billing/utils"
 	. "git.tor.ph/hiveon/pool/models"
+	"github.com/mileusna/crontab"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -13,11 +12,11 @@ import (
 )
 
 type BillingCalculator struct {
-	BillingRepo           *repository.BillingRepository
+	BillingRepo           *BillingRepository
 }
 
 func NewBillingCalculator() (*BillingCalculator) {
-	return &BillingCalculator{BillingRepo:repository.NewBillingRepository()}
+	return &BillingCalculator{BillingRepo:NewBillingRepository()}
 }
 
 func (b BillingCalculator) StartCalculation(er chan error) {

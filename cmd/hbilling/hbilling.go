@@ -2,7 +2,7 @@ package hbilling
 
 import (
 	"fmt"
-	"git.tor.ph/hiveon/pool/internal/billing/service"
+	. "git.tor.ph/hiveon/pool/internal/billing"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
@@ -12,7 +12,7 @@ import (
 func main() {
 	errs := make(chan error, 0)
 
-	calc := service.NewBillingCalculator()
+	calc := NewBillingCalculator()
 	calc.StartCalculation(errs)
 
 	go func() {
