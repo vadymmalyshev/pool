@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+
 	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
 	"github.com/jinzhu/gorm"
@@ -32,17 +33,14 @@ type Payment struct {
 	paymentId float64
 }
 
-func GetHaveonClient() *gorm.DB {
+func NewHiveosRepository() IHiveosRepository {
 	db, err := mysql.Connect(config.Sequelize2DB)
 
 	if err != nil {
 		log.Panic("failed to init mysql db :", err.Error())
 	}
-	return db
-}
 
-func NewHiveosRepository() IHiveosRepository {
-	return &HiveosRepository{hiveClient: GetHaveonClient()}
+	return &HiveosRepository{hiveClient: db}
 }
 
 func (repo *HiveosRepository) queryIntSingle(query string) int {
@@ -53,20 +51,31 @@ func (repo *HiveosRepository) queryIntSingle(query string) int {
 }
 
 func (repo *HiveosRepository) GetBlock24NotUnckle() int {
-	sql := "select count(id) as count from blocks as b where is_uncle=0 and b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval " +
-		config.PgOneDay + ")) * 1000"
+	sql :=
+		`SELECT count(id) as count 
+		FROM blocks as b 
+		WHERE is_uncle=0 and 
+		b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval ` + config.PgOneDay + `)) * 1000`
 	return repo.queryIntSingle(sql)
 }
 
 func (repo *HiveosRepository) GetBlock24Uncle() int {
-	sql := "select count(id) as count from blocks as b where is_uncle=1 and b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval " +
-		config.PgOneDay + ")) * 1000"
+	sql :=
+		`SELECT count(id) as count 
+		FROM blocks as b 
+		WHERE is_uncle=1 and 
+		b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval ` + config.PgOneDay + `)) * 1000`
 	return repo.queryIntSingle(sql)
 }
 
 func (repo *HiveosRepository) GetBill(walletId string) *sql.Rows {
-	rows, err := repo.hiveClient.Raw("select p.id, pd.paid, p.status, p.create_ts, p.tx_hash  from payment_details pd " +
-		"inner join payments p on p.id = pd.id where pd.miner_wallet = ? order by pd.id desc limit 30", walletId).Rows()
+	sql :=
+		`SELECT p.id, pd.paid, p.status, p.create_ts, p.tx_hash
+		FROM payment_details pd
+		INNER JOIN payments p ON p.id = pd.id 
+		WHERE pd.miner_wallet = ? ORDER BY pd.id DESC LIMIT 30`
+
+	rows, err := repo.hiveClient.Raw(sql, walletId).Rows()
 	if err != nil {
 		log.Error(err)
 	}
@@ -77,25 +86,38 @@ func (repo *HiveosRepository) GetBill(walletId string) *sql.Rows {
 func (repo *HiveosRepository) GetBillInfo(walletId string) RepoBillInfo {
 	var totalPaid float64
 
-	err := repo.hiveClient.Raw("select sum(paid) as totalPaid from payment_details where miner_wallet = ?", walletId).Scan(&totalPaid)
+	err := repo.hiveClient.Raw(
+		`SELECT sum(paid) AS totalPaid 
+		FROM payment_details 
+		WHERE miner_wallet = ?`, walletId).Scan(&totalPaid)
+
 	if err != nil {
 		log.Error(err)
 	}
 
 	var payment Payment
 	var firstTime, balance string
-	err = repo.hiveClient.Raw("select paid,payment_id from payment_details where miner_wallet = ? order by id limit 1",
-		walletId).Scan(&payment)
+	err = repo.hiveClient.Raw(
+		`SELECT paid,payment_id FROM payment_details 
+		WHERE miner_wallet = ? ORDER BY id LIMIT 1`, walletId).Scan(&payment)
+
 	if err != nil {
 		log.Error(err)
 	}
 
-	repo.hiveClient.Raw("select create_ts from payments where id=?", payment.paymentId).Scan(&firstTime)
+	repo.hiveClient.Raw(
+		`SELECT create_ts 
+		FROM payments 
+		WHERE id=?`, payment.paymentId).Scan(&firstTime)
+
 	if err != nil {
 		log.Error(err)
 	}
 
-	repo.hiveClient.Raw("select balance from deposits where miner_wallet =?", walletId).Scan(&balance)
+	repo.hiveClient.Raw(
+		`SELECT balance 
+		FROM deposits 
+		WHERE miner_wallet =?`, walletId).Scan(&balance)
 	if err != nil {
 		log.Error(err)
 	}
@@ -106,10 +128,12 @@ func (repo *HiveosRepository) GetBillInfo(walletId string) RepoBillInfo {
 
 func (repo *HiveosRepository) GetBalance(walletId string) float64 {
 	var res float64
-	err := repo.hiveClient.Raw("select balance from deposits where miner_wallet = ?", walletId).Scan(&res)
+	err := repo.hiveClient.Raw(
+		`SELECT balance 
+		FROM deposits 
+		WHERE miner_wallet = ?`, walletId).Scan(&res)
 	if err != nil {
 		log.Error(err)
 	}
 	return res
 }
-

@@ -37,34 +37,14 @@ type Income struct {
 	Income string `json:"income"`
 }
 
-//Success response
-// swagger:response UserWallets
-type UserWallets struct {
-	gorm.Model
-	Wallet string    `gorm:"not null;unique"`
-	Coin   string    `gorm:"not null"`
-	User   OAuthUser `gorm:"foreignkey:UserID"`
-	UserID uint      `gorm:"not null"`
-}
-
 type OAuthUser struct {
 	gorm.Model
-	Username string `gorm:"not null"`
-	Email string `gorm:"not null;unique"`
-	Password string `gorm:"not null"`
-	Token string
+	Username  string `gorm:"not null"`
+	Email     string `gorm:"not null;unique"`
+	Password  string `gorm:"not null"`
+	Token     string
 	Challenge string
-	Active bool `gorm:"not null"`
-}
-
-// Success response
-// swagger:response BlockCount
-type BlockCount struct {
-	Code int `json:"code"`
-	Data struct {
-		Uncles int `json:"uncles"`
-		Blocks int `json:"blocks"`
-	} `json:"data"`
+	Active    bool `gorm:"not null"`
 }
 
 // Success response
@@ -179,28 +159,28 @@ type Worker struct {
 }
 
 type WorkerStatistic struct {
-	Rig                 string  `json:"rig"`
-	InvalidShares       float64 `json:"invalidShares"`
-	StaleShares         float64 `json:"staleShares"`
-	ValidShares         float64 `json:"validShares"`
-	ActivityPercentage  float64 `json:"activityPercentage"`
+	Rig                string  `json:"rig"`
+	InvalidShares      float64 `json:"invalidShares"`
+	StaleShares        float64 `json:"staleShares"`
+	ValidShares        float64 `json:"validShares"`
+	ActivityPercentage float64 `json:"activityPercentage"`
 }
 
 type WalletWorker struct {
-	Worker              string  `json:"worker"`
-	Time                string  `json:"time"`
-	Hashrate            float64 `json:"hashrate"`
-	Hashrate24h         float64 `json:"hashrate24h"`
-	MeanHashrate24h     float64 `json:"meanHashrate24h"`
-	Invalid             float64 `json:"invalid"`
-	Stale               float64 `json:"stale"`
-	Valid               float64 `json:"valid"`
-	Online				bool    `json:"online"`
+	Worker          string  `json:"worker"`
+	Time            string  `json:"time"`
+	Hashrate        float64 `json:"hashrate"`
+	Hashrate24h     float64 `json:"hashrate24h"`
+	MeanHashrate24h float64 `json:"meanHashrate24h"`
+	Invalid         float64 `json:"invalid"`
+	Stale           float64 `json:"stale"`
+	Valid           float64 `json:"valid"`
+	Online          bool    `json:"online"`
 }
 
 type WalletWorkerMapping struct {
-	Worker              string  `json:"worker"`
-	Wallet              string  `json:"wallet"`
+	Worker string `json:"worker"`
+	Wallet string `json:"wallet"`
 }
 
 type Workers struct {
@@ -271,7 +251,7 @@ type WorkerTotal struct {
 	Invalid24hStake     float64 `json:"invalid24hStake"`
 }
 type WorkerInfo struct {
-	Code    int            `json:"code"`
-	Total   WorkerTotal    `json:"total"`
-	Shares  []SharesDetail `json:"shares"`
+	Code   int            `json:"code"`
+	Total  WorkerTotal    `json:"total"`
+	Shares []SharesDetail `json:"shares"`
 }

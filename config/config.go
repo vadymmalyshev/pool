@@ -9,7 +9,7 @@ import (
 	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
-	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
+	hydraclient "git.tor.ph/hiveon/pool/internal/platform/hydra/client"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
 
 	"github.com/sirupsen/logrus"
@@ -79,6 +79,8 @@ const (
 // AdminPrefix represents url prefix for admin panel
 const AdminPrefix = "/admin"
 
+const WorkerOfflineMin = 20
+
 type admin struct {
 	Server      server.Config
 	HydraClient hydraclient.Config
@@ -89,7 +91,7 @@ var (
 	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
 	HashrateCul, HashrateCulDivider                                                           string
 	PgOneDay                                                                                  string
-	UseCasbin																			      bool
+	UseCasbin                                                                                 bool
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
@@ -168,7 +170,7 @@ func init() {
 	Redis = database.Config{
 		Host: viper.GetString("redis.host"),
 		Port: viper.GetInt("redis.port"),
-		Name:   viper.GetString("redis.db"),
+		Name: viper.GetString("redis.db"),
 		Pass: viper.GetString("redis.password"),
 	}
 	if err := Redis.Validate(); err != nil {

@@ -5,12 +5,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	paramWorker = "workerId"
+	paramWallet = "walletId"
+)
+
 type MinerAPI struct {
 	minerService MinerService
 }
 
 func NewMinerAPI() *MinerAPI {
-	return &MinerAPI{minerService:NewMinerService()}
+	return &MinerAPI{minerService: NewMinerService()}
 }
 
 func (h *MinerAPI) GetFutureIncome() gin.HandlerFunc {
@@ -21,43 +26,43 @@ func (h *MinerAPI) GetFutureIncome() gin.HandlerFunc {
 
 func (h *MinerAPI) GetBillInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
+		walletID := c.Param(paramWallet)
 		c.JSON(200, h.minerService.GetBillInfo(walletID))
 	}
 }
 
 func (h *MinerAPI) GetBill() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
+		walletID := c.Param(paramWallet)
 		c.JSON(200, h.minerService.GetBill(walletID))
 	}
 }
 
 func (h *MinerAPI) GetShares() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
-		workerID := c.Param("workerId")
+		walletID := c.Param(paramWallet)
+		workerID := c.Param(paramWorker)
 		c.JSON(200, h.minerService.GetShares(walletID, workerID))
 	}
 }
 
 func (h *MinerAPI) GetHashrate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
+		walletID := c.Param(paramWallet)
 		c.JSON(200, h.minerService.GetHashrate(walletID, ""))
 	}
 }
 
 func (h *MinerAPI) GetCountHistory() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
+		walletID := c.Param(paramWallet)
 		c.JSON(200, h.minerService.GetCountHistory(walletID))
 	}
 }
 
 func (h *MinerAPI) GetWorkerStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		workerID := c.Param("workerId")
+		workerID := c.Param(paramWorker)
 		c.JSON(200, h.minerService.CalcWorkersStat("", workerID))
 	}
 }
@@ -70,7 +75,7 @@ func (h *MinerAPI) GetAllWorkersStatistic() gin.HandlerFunc {
 
 func (h *MinerAPI) GetWalletStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
+		walletID := c.Param(paramWallet)
 		c.JSON(200, h.minerService.CalcWorkersStat(walletID, ""))
 	}
 }
@@ -83,7 +88,7 @@ func (h *MinerAPI) GetWalletsWorkersMapping() gin.HandlerFunc {
 
 func (h *MinerAPI) GetMiner() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
+		walletID := c.Param(paramWallet)
 		c.JSON(200, h.minerService.GetMiner(walletID, ""))
 	}
 }
