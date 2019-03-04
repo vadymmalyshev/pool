@@ -10,15 +10,20 @@ type EthAPI struct {
 	service WalletService
 }
 
+const (
+	walletParam = "walletID"
+	workerParam = "workerID"
+)
+
 // NewEthAPI return instance of ETH api service
 func NewEthAPI() *EthAPI {
-	return &NewEthAPI{walletService: NewWalletService()}
+	return &EthAPI{walletService: NewWalletService()}
 }
 
 // GetWalletFullData returns full mining history for 1d of specific wallet
 func (api *EthAPI) GetWalletFullData() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletID")
+		walletID := c.Param(walletParam)
 		c.JSON(200, api.service.GetWalletInfo(walletID))
 	}
 }
@@ -26,8 +31,8 @@ func (api *EthAPI) GetWalletFullData() gin.HandlerFunc {
 // GetWalletsWorkerData returns mining history of specific worker of wallet
 func (api *EthAPI) GetWalletsWorkerData() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletID")
-		workerID := c.Param("workerID")
+		walletID := c.Param(walletParam)
+		workerID := c.Param(workerParam)
 		c.JSON(200, api.service.GetWalletWorkerInfo(walletID, workerID))
 	}
 }
