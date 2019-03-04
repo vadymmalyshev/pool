@@ -1,24 +1,30 @@
-package repository
+package users
 
 import (
 	"github.com/jinzhu/gorm"
+	. "git.tor.ph/hiveon/pool/models"
 )
+
+type UserRepositorer interface {
+	GetUserWallets(userID uint) []Wallet
+	SaveUserWallet(user Wallet)
+}
 
 type UserRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) UserRepository {
+func NewUserRepository(db *gorm.DB) UserRepositorer {
 	return &UserRepository{db}
 }
 
-func (g *UserRepository) GetUserWallets(userID uint) []UserWallets {
-	var userWallets []UserWallets
-	g.client.Where("user_id = ?", userID).Find(&userWallets)
+func (g *UserRepository) GetUserWallets(userID uint) []Wallet {
+	var userWallets []Wallet
+	g.db.Where("user_id = ?", userID).Find(&userWallets)
 	return userWallets
 }
 
-func (g *UserRepository) SaveUserWallet(user UserWallets) {
-	g.client.Save(&user)
+func (g *UserRepository) SaveUserWallet(user Wallet) {
+	g.db.Save(&user)
 	return
 }

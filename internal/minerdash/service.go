@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 	. "git.tor.ph/hiveon/pool/internal/income"
+	. "git.tor.ph/hiveon/pool/internal/accounting"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"
 	repo "git.tor.ph/hiveon/pool/internal/api/repository"
 	"github.com/jinzhu/gorm"
@@ -32,21 +33,21 @@ type MinerServicer interface {
 }
 
 type minerService struct {
-	incomeRepository    IncomeRepositorer
-	minerdashRepository MinerdashRepositorer
-	hiveosRepository    repo.IHiveosRepository
-	redisRepository     repo.IRedisRepository
+	incomeRepository        IncomeRepositorer
+	minerdashRepository     MinerdashRepositorer
+	accountingRepository    AccointingRepositorer
+	redisRepository         repo.IRedisRepository
 }
 
 func NewMinerService(db *gorm.DB, influx *client.Client) MinerServicer {
-	return &minerService{incomeRepository: NewRepository(db), minerdashRepository: NewMinerdashRepository(influx),
-		hiveosRepository: repo.NewHiveosRepository(), redisRepository: repo.NewRedisRepository()}
+	return &minerService{incomeRepository: NewIncomeRepository(db), minerdashRepository: NewMinerdashRepository(influx),
+		accountingRepository: NewAccountingRepository(), redisRepository: repo.NewRedisRepository()}
 }
-/*
+
 // for mockBlockRepo testing
-func NewMinerServiceWithRepo(block IBlockRepository, minerdash IMinerdashRepository, hiveos IHiveosRepository, redis IRedisRepository) MinerService {
-	return &minerService{blockRepository: block, minerdashRepository: minerdash, hiveosRepository: hiveos, redisRepository: redis}
-}*/
+func NewMinerServiceWithRepo(incomeRepository IncomeRepositorer, minerdashRepository MinerdashRepositorer, accountingRepository AccointingRepositorer, redisRepository repo.IRedisRepository) MinerServicer {
+	return &minerService{incomeRepository: incomeRepository, minerdashRepository: minerdashRepository, accountingRepository: accountingRepository, redisRepository: redisRepository}
+}
 
 func (m *minerService) GetFutureIncome() FutureIncome {
 	incomeCurrency := m.minerdashRepository.GetETHHashrate()
@@ -63,13 +64,13 @@ func (m *minerService) GetFutureIncome() FutureIncome {
 }
 
 func (m *minerService) GetBillInfo(walletId string) BillInfo {
-	bill := m.hiveosRepository.GetBillInfo(walletId)
+	bill := m.accountingRepository.GetBillInfo(walletId)
 	return BillInfo{Balance: bill.Balance, FirstTime: FormatTimeToRFC3339(bill.FirstTime),
 		FirstPaid: bill.FirstPaid, TotalPaid: bill.TotalPaid}
 }
 
 func (m *minerService) GetBill(walletId string) Bill {
-	rows := m.hiveosRepository.GetBill(walletId)
+	rows := m.accountingRepository.GetBill(walletId)
 
 	var bills []BillDetail
 
@@ -132,7 +133,7 @@ func (m *minerService) GetMiner(walletId string, workerId string) MinerWorker {
 func (m *minerService) getBalance(walletId string) Balance {
 
 	balance := Balance{Code: 200}
-	balance.Data.Balance = m.hiveosRepository.GetBalance(walletId)
+	balance.Data.Balance = m.accountingRepository.GetBalance(walletId)
 	return balance
 }
 

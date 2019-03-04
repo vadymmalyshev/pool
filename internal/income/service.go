@@ -1,7 +1,7 @@
 package income
 
 import (
-	. "git.tor.ph/hiveon/pool/internal/api/repository"
+	. "git.tor.ph/hiveon/pool/internal/accounting"
 	"git.tor.ph/hiveon/pool/internal/api/response"
 )
 
@@ -10,20 +10,20 @@ type BlockServicer interface {
 }
 
 type blockService struct {
-	hiveosRepository IHiveosRepository
+	accountingRepository AccointingRepositorer
 }
 
 func NewBlockService() BlockServicer {
-	return &blockService{hiveosRepository: NewHiveosRepository()}
+	return &blockService{accountingRepository: NewAccountingRepository()}
 }
 
-func NewBlockServiceWithRepo(repo IHiveosRepository) BlockServicer {
-	return &blockService{hiveosRepository: repo}
+func NewBlockServiceWithRepo(repo AccointingRepositorer) BlockServicer {
+	return &blockService{accountingRepository: repo}
 }
 
 func (b *blockService) GetBlockCount() response.BlockCount {
 	blockData := response.BlockCount{Code: 200}
-	blockData.Data.Uncles = b.hiveosRepository.GetBlock24Uncle()
-	blockData.Data.Blocks = b.hiveosRepository.GetBlock24NotUnckle()
+	blockData.Data.Uncles = b.accountingRepository.GetBlock24Uncle()
+	blockData.Data.Blocks = b.accountingRepository.GetBlock24NotUnckle()
 	return blockData
 }

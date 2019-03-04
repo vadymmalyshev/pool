@@ -9,12 +9,12 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type IUserRepository interface {
+type IUserRepository_ interface {
 	GetUserWallets(userID uint) []Wallet
 	SaveUserWallet(user Wallet)
 }
 
-type UserRepository struct {
+type UserRepository_ struct {
 	client *gorm.DB
 }
 
@@ -28,17 +28,17 @@ func GetUserRepositoryClient() *gorm.DB {
 
 }
 
-func NewUserRepository() IUserRepository {
-	return &UserRepository{client: GetUserRepositoryClient()}
+func NewUserRepository() IUserRepository_ {
+	return &UserRepository_{client: GetUserRepositoryClient()}
 }
 
-func (g *UserRepository) GetUserWallets(userID uint) []Wallet {
+func (g *UserRepository_) GetUserWallets(userID uint) []Wallet {
 	var userWallets []Wallet
 	g.client.Where("user_id = ?", userID).Find(&userWallets)
 	return userWallets
 }
 
-func (g *UserRepository) SaveUserWallet(user Wallet) {
+func (g *UserRepository_) SaveUserWallet(user Wallet) {
 	g.client.Save(&user)
 	return
 }

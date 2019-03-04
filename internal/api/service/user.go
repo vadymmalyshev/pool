@@ -10,7 +10,7 @@ type UserService interface {
 }
 
 type userService struct {
-	userRepository IUserRepository
+	userRepository IUserRepository_
 }
 
 func NewUserService() UserService{
@@ -22,7 +22,7 @@ func (u *userService) GetUserWallet(userID uint) []Wallet {
 }
 
 func (u *userService) SaveUserWallet(userID uint, wallet string, coin string) {
-	w:= UserWallets{UserID: userID, Wallet:wallet, Coin:coin}
-	u.userRepository.SaveUserWallet(w)
+	//w:= Wallet{UserID: userID, Address:wallet, Coin:coin}
+	//u.userRepository.SaveUserWallet(w)
 	return
 }

@@ -1,46 +1,28 @@
-package repository
+package users
 
 import (
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
-	// "git.tor.ph/hiveon/pool/config"
-	// . "git.tor.ph/hiveon/pool/internal/api/response"
-	"github.com/jinzhu/gorm"
-	"log"
-
-	// "git.tor.ph/hiveon/pool/internal/platform/database/postgres"
-	// "github.com/jinzhu/gorm"
+	. "git.tor.ph/hiveon/pool/internal/api/repository"
+	. "git.tor.ph/hiveon/pool/models"
 )
-
-type IUserRepository interface {
-	GetUserWallets(userID uint) []UserWallets
-	SaveUserWallet(user UserWallets)
+type UserServicer interface {
+	GetUserWallet(userID uint) []Wallet
+	SaveUserWallet(userID uint, wallet string, coin string)
 }
 
-type UserRepository struct {
-	client *gorm.DB
+type userService struct {
+	userRepository UserRepositorer
 }
 
-func GetUserRepositoryClient() *gorm.DB {
-	db, err := postgres.Connect(config.DB)
-
-	if err != nil {
-		log.Panic("failed to init postgres db :", err.Error())
-	}
-	return db
-
+func NewUserService() UserServicer{
+	return &userService{userRepository:NewUserRepository()}
 }
 
-func NewUserRepository() IUserRepository {
-	return &UserRepository{client: GetUserRepositoryClient()}
+func (u *userService) GetUserWallet(userID uint) []Wallet {
+	return u.userRepository.GetUserWallets(userID)
 }
 
-func (g *UserRepository) GetUserWallets(userID uint) []UserWallets {
-	var userWallets []UserWallets
-	g.client.Where("user_id = ?", userID).Find(&userWallets)
-	return userWallets
-}
-
-func (g *UserRepository) SaveUserWallet(user UserWallets) {
-	g.client.Save(&user)
+func (u *userService) SaveUserWallet(userID uint, wallet string, coin string) {
+	//w:= Wallet{UserID: userID, Address:wallet, Coin:coin}
+	//u.userRepository.SaveUserWallet(w)
 	return
 }
