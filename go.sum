@@ -236,6 +236,7 @@ github.com/ory/fosite v0.29.0/go.mod h1:0atSZmXO7CAcs6NPMI/Qtot8tmZYj04Nddoold4S
 github.com/ory/go-convenience v0.1.0/go.mod h1:uEY/a60PL5c12nYz4V5cHY03IBmwIAEm8TWB0yn9KNs=
 github.com/ory/graceful v0.1.0/go.mod h1:zqu70l95WrKHF4AZ6tXHvAqAvpY6M7g6ttaAVcMm7KU=
 github.com/ory/herodot v0.4.1/go.mod h1:3BOneqcyBsVybCPAJoi92KN2BpJHcmDqAMcAAaJiJow=
+github.com/ory/hydra v0.0.0-20181203105159-55654c084cc2 h1:MN+PzrLagCK9M5EigfTp7IjXruxR1cbCNvqAhlPIpuE=
 github.com/ory/hydra v0.0.0-20181203105159-55654c084cc2/go.mod h1:vZDNXXrFbvpTIf4hF9Lo3yqndTqY13QxDMOxWwpiEHk=
 github.com/ory/sqlcon v0.0.7/go.mod h1:oOyCmOJWAs8F0bnGmmIvGA9/4K1JqVL0D9JgvAaVc3U=
 github.com/ory/x v0.0.32/go.mod h1:4hnvHBE1KfoPP99R82BH72s3UnHt//MmWX+5NYnfzFQ=

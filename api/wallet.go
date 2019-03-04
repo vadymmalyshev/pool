@@ -5,25 +5,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type WalletAPI struct {
-	walletService WalletService
+// EthAPI container gin router handlers to get eth wallet data
+type EthAPI struct {
+	service WalletService
 }
 
-func NewWalletAPI() *WalletAPI {
-	return &WalletAPI{walletService:NewWalletService()}
+// NewEthAPI return instance of ETH api service
+func NewEthAPI() *EthAPI {
+	return &NewEthAPI{walletService: NewWalletService()}
 }
 
-func (h *WalletAPI) HandleGetWallet() gin.HandlerFunc {
+// GetWalletFullData returns full mining history for 1d of specific wallet
+func (api *EthAPI) GetWalletFullData() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
-		c.JSON(200, h.walletService.GetWalletInfo(walletID))
+		walletID := c.Param("walletID")
+		c.JSON(200, api.service.GetWalletInfo(walletID))
 	}
 }
 
-func (h *WalletAPI) HandleGetWalletWorker() gin.HandlerFunc {
+// GetWalletsWorkerData returns mining history of specific worker of wallet
+func (api *EthAPI) GetWalletsWorkerData() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		walletID := c.Param("walletId")
-		workerID := c.Param("workerId")
-		c.JSON(200, h.walletService.GetWalletWorkerInfo(walletID, workerID))
+		walletID := c.Param("walletID")
+		workerID := c.Param("workerID")
+		c.JSON(200, api.service.GetWalletWorkerInfo(walletID, workerID))
 	}
 }
