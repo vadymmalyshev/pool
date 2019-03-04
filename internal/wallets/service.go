@@ -1,16 +1,5 @@
 package wallets
 
-import (
-	red "github.com/gomodule/redigo/redis"
-	"github.com/jinzhu/gorm"
-)
-
-// Config stores connections to databases
-type Config struct {
-	Redis *red.Conn
-	DB    *gorm.DB
-}
-
 type service struct {
 	Config
 }

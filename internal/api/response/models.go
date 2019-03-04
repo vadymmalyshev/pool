@@ -7,7 +7,6 @@ type Exception struct {
 }
 
 type PoolData struct {
-	Code int `json:"code"`
 	Data struct {
 		Hashrate struct {
 			Time        string  `json:"time"`
@@ -28,7 +27,6 @@ type PoolData struct {
 // Success response
 // swagger:response IncomeHistory
 type IncomeHistory struct {
-	Code int      `json:"code"`
 	Data []Income `json:"data"`
 }
 
@@ -60,20 +58,16 @@ type BlockCount struct {
 // Success response
 // swagger:response FutureIncome
 type FutureIncome struct {
-	Code int `json:"code"`
-	Data struct {
-		CNY      float64 `json:"cny"`
-		USD      float64 `json:"usd"`
-		BTC      float64 `json:"btc"`
-		Income1d int     `json:"income1d"`
-		Income   int     `json:"income"`
-	} `json:"data"`
+	CNY      float64 `json:"cny"`
+	USD      float64 `json:"usd"`
+	BTC      float64 `json:"btc"`
+	Income1d int     `json:"income1d"`
+	Income   int     `json:"income"`
 }
 
 // Success response
 // swagger:response UserInfo
 type UserInfo struct {
-	Code int `json:"code"`
 	Data struct {
 	}
 }
@@ -90,7 +84,6 @@ type BillInfo struct {
 // Success response
 // swagger:response Bill
 type Bill struct {
-	Code int          `json:"code"`
 	Data []BillDetail `json:"data"`
 }
 
@@ -115,21 +108,18 @@ type SharesDetail struct {
 // Success response
 // swagger:response Shares
 type Shares struct {
-	Code int            `json:"code"`
 	Data []SharesDetail `json:"data"`
 }
 
 // Success response
 // swagger:response Shares
 type SharesTotal struct {
-	Code int            `json:"code"`
 	Data []SharesDetail `json:"data"`
 }
 
 // Success response
 // swagger:response Balance
 type Balance struct {
-	Code int `json:"code"`
 	Data struct {
 		Balance float64 `json:"balance"`
 	} `json:"data"`
@@ -143,18 +133,14 @@ type TimeCount struct {
 // Success response
 // swagger:response WorkerCount
 type WorkerCount struct {
-	Code int         `json:"code"`
 	Data []TimeCount `json:"data"`
 }
 
 // Success response
 // swagger:response Hashrate
 type Hashrate struct {
-	Code int `json:"code"`
-	Data struct {
-		Hashrate        float64 `json:"hashrate"`
-		MeanHashrate24H float64 `json:"meanHashrate24H"`
-	} `json:"data"`
+	Hashrate        float64 `json:"hashrate"`
+	MeanHashrate24H float64 `json:"meanHashrate24H"`
 }
 
 type Worker struct {
@@ -194,17 +180,14 @@ type WalletWorkerMapping struct {
 }
 
 type Workers struct {
-	Code int      `json:"code"`
 	Data []Worker `json:"data"`
 }
 
 type WorkersStatistic struct {
-	Code int               `json:"code"`
 	Data []WorkerStatistic `json:"data"`
 }
 
 type WalletWorkerMappingStatistic struct {
-	Code int                   `json:"code"`
 	Data []WalletWorkerMapping `json:"data"`
 }
 
@@ -239,7 +222,6 @@ type WalletTotal struct {
 }
 
 type WalletInfo struct {
-	Code    int            `json:"code"`
 	Total   WalletTotal    `json:"total"`
 	Shares  []SharesDetail `json:"shares"`
 	Workers []WalletWorker `json:"workers"`
@@ -261,7 +243,6 @@ type WorkerTotal struct {
 	Invalid24hStake     float64 `json:"invalid24hStake"`
 }
 type WorkerInfo struct {
-	Code   int            `json:"code"`
 	Total  WorkerTotal    `json:"total"`
 	Shares []SharesDetail `json:"shares"`
 }
