@@ -71,10 +71,10 @@ func (m *BlockRepository) GetIncomeHistory() *sql.Rows {
 		`SELECT start_time,expected_earning as income 
 		FROM expected_earning_result 
 		WHERE start_time >= (UNIX_TIMESTAMP() -(24 * 3600))`
-	    rows, err := m.client.Raw(sql).Rows();
-		if  err != nil {
-			log.Error(err)
-		}
+	rows, err := m.client.Raw(sql).Rows();
+	if  err != nil {
+		log.Error(err)
+	}
 
 	return rows
 }

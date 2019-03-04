@@ -2,10 +2,10 @@ package service
 
 import (
 	. "git.tor.ph/hiveon/pool/internal/api/repository"
-	. "git.tor.ph/hiveon/pool/internal/api/response"
+	. "git.tor.ph/hiveon/pool/models"
 )
 type UserService interface {
-	GetUserWallet(userID uint) []UserWallets
+	GetUserWallet(userID uint) []Wallet
 	SaveUserWallet(userID uint, wallet string, coin string)
 }
 
@@ -17,7 +17,7 @@ func NewUserService() UserService{
 	return &userService{userRepository:NewUserRepository()}
 }
 
-func (u *userService) GetUserWallet(userID uint) []UserWallets {
+func (u *userService) GetUserWallet(userID uint) []Wallet {
 	return u.userRepository.GetUserWallets(userID)
 }
 
