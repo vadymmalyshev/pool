@@ -2,6 +2,7 @@ package minerdash
 
 import (
 	"encoding/json"
+	"github.com/go-redis/redis"
 	"github.com/influxdata/influxdb1-client"
 	"math"
 	"sort"
@@ -9,6 +10,7 @@ import (
 	"time"
 	. "git.tor.ph/hiveon/pool/internal/income"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
+	. "git.tor.ph/hiveon/pool/internal/redis"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"
 	repo "git.tor.ph/hiveon/pool/internal/api/repository"
 	"github.com/jinzhu/gorm"
@@ -36,12 +38,12 @@ type minerService struct {
 	incomeRepository        IncomeRepositorer
 	minerdashRepository     MinerdashRepositorer
 	accountingRepository    AccointingRepositorer
-	redisRepository         repo.IRedisRepository
+	redisRepository         RedisRepositorer
 }
 
-func NewMinerService(db *gorm.DB, influx *client.Client) MinerServicer {
-	return &minerService{incomeRepository: NewIncomeRepository(db), minerdashRepository: NewMinerdashRepository(influx),
-		accountingRepository: NewAccountingRepository(), redisRepository: repo.NewRedisRepository()}
+func NewMinerService(Sequelize2DB *gorm.DB, Sequelize3DB *gorm.DB, influx *client.Client,redis *redis.Client) MinerServicer {
+	return &minerService{incomeRepository: NewIncomeRepository(Sequelize3DB), minerdashRepository: NewMinerdashRepository(influx),
+		accountingRepository: NewAccountingRepository(Sequelize2DB), redisRepository: NewRedisRepository(redis)}
 }
 
 // for mockBlockRepo testing

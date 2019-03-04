@@ -9,3 +9,15 @@ type BlockCount struct {
 		Blocks int `json:"blocks"`
 	} `json:"data"`
 }
+
+// Success response
+// swagger:response IncomeHistory
+type IncomeHistory struct {
+	Code int      `json:"code"`
+	Data []Income `json:"data"`
+}
+
+type Income struct {
+	Time   string `json:"time"`
+	Income string `json:"income"`
+}
