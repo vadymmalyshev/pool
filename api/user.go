@@ -1,9 +1,12 @@
 package api
 
 import (
+	"git.tor.ph/hiveon/pool/config"
+	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
+	"log"
 	"strconv"
 
-	. "git.tor.ph/hiveon/pool/internal/api/service"
+	. "git.tor.ph/hiveon/pool/internal/users"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,11 +17,16 @@ const (
 )
 
 type UserAPI struct {
-	userService UserService
+	userService UserServicer
 }
 
 func NewUserAPI() *UserAPI {
-	return &UserAPI{userService: NewUserService()}
+	db, err := postgres.Connect(config.DB)
+	if err != nil {
+		log.Panic("failed to init postgres db :", err.Error())
+	}
+
+	return &UserAPI{userService: NewUserService(db)}
 }
 
 func (h *UserAPI) GetUserWallet() gin.HandlerFunc {

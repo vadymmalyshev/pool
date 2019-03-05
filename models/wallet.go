@@ -10,6 +10,7 @@ import (
 // Wallet represents wallet db model
 type Wallet struct {
 	gorm.Model
+	UserID              uint   `gorm:"not null"`
 	Address             string `gorm:"not null"`
 	Coin                Coin
 	CoinID              uint `gorm:"index:idx_coin_id"`

@@ -8,6 +8,7 @@ import (
 type UserRepositorer interface {
 	GetUserWallets(userID uint) []Wallet
 	SaveUserWallet(user Wallet)
+	CreateCoinIfNotExists(coinName string) (*Coin, error)
 }
 
 type UserRepository struct {
@@ -27,4 +28,14 @@ func (g *UserRepository) GetUserWallets(userID uint) []Wallet {
 func (g *UserRepository) SaveUserWallet(user Wallet) {
 	g.db.Save(&user)
 	return
+}
+
+func (g *UserRepository) CreateCoinIfNotExists(coinName string) (*Coin, error) {
+	var coin Coin
+	res := g.db.FirstOrCreate(&coin, Coin{Name: coinName})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return &coin, nil
+
 }
