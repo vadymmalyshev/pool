@@ -1,8 +1,8 @@
 package users
 
 import (
+	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/models"
-	"github.com/jinzhu/gorm"
 )
 
 type UserServicer interface {
@@ -14,8 +14,8 @@ type userService struct {
 	userRepository UserRepositorer
 }
 
-func NewUserService(db *gorm.DB) UserServicer{
-	return &userService{userRepository:NewUserRepository(db)}
+func NewUserService() UserServicer{
+	return &userService{userRepository:NewUserRepository(config.Postgres)}
 }
 
 func (u *userService) GetUserWallet(userID uint) []Wallet {

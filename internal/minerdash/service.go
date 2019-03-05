@@ -3,21 +3,19 @@ package minerdash
 import (
 	"encoding/json"
 	"git.tor.ph/hiveon/pool/config"
-	"github.com/go-redis/redis"
-	"github.com/influxdata/influxdb1-client"
+	. "git.tor.ph/hiveon/pool/internal/accounting"
+	repo "git.tor.ph/hiveon/pool/internal/api/repository"
+	. "git.tor.ph/hiveon/pool/internal/api/utils"
+	. "git.tor.ph/hiveon/pool/internal/income"
+	. "git.tor.ph/hiveon/pool/internal/redis"
+	. "github.com/influxdata/influxdb1-client/models"
+	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 	"math"
 	"reflect"
 	"sort"
 	"strconv"
 	"time"
-	. "git.tor.ph/hiveon/pool/internal/income"
-	. "git.tor.ph/hiveon/pool/internal/accounting"
-	. "git.tor.ph/hiveon/pool/internal/redis"
-	. "git.tor.ph/hiveon/pool/internal/api/utils"
-	repo "git.tor.ph/hiveon/pool/internal/api/repository"
-	. "github.com/influxdata/influxdb1-client/models"
-	"github.com/jinzhu/gorm"
-	log "github.com/sirupsen/logrus"
 )
 
 // Service provides method with calculations of miner's job history
@@ -46,9 +44,9 @@ type minerService struct {
 	redisRepository         RedisRepositorer
 }
 
-func NewMinerService(Sequelize2DB *gorm.DB, Sequelize3DB *gorm.DB, influx *client.Client,redis *redis.Client) MinerServicer {
-	return &minerService{incomeRepository: NewIncomeRepository(Sequelize3DB), minerdashRepository: NewMinerdashRepository(influx),
-		accountingRepository: NewAccountingRepository(Sequelize2DB), redisRepository: NewRedisRepository(redis)}
+func NewMinerService() MinerServicer {
+	return &minerService{incomeRepository: NewIncomeRepository(config.Seq3), minerdashRepository: NewMinerdashRepository(config.Influx),
+		accountingRepository: NewAccountingRepository(config.Seq2), redisRepository: NewRedisRepository(config.Red)}
 }
 
 // for mockBlockRepo testing

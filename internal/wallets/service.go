@@ -1,14 +1,13 @@
 package wallets
 
 import (
+	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	. "git.tor.ph/hiveon/pool/internal/redis"
-	"github.com/go-redis/redis"
 	"encoding/json"
 	red "github.com/gomodule/redigo/redis"
 	log "github.com/sirupsen/logrus"
-	"github.com/influxdata/influxdb1-client"
 	"github.com/jinzhu/gorm"
 	"math"
 	"strconv"
@@ -33,9 +32,9 @@ type walletService struct {
 	minerdashRepository minerdash.MinerdashRepositorer
 }
 
-func NewWalletService(Sequelize2DB *gorm.DB, Sequelize3DB *gorm.DB, influx *client.Client,redis *redis.Client) WalletServicer {
-	return &walletService{minerService: minerdash.NewMinerService(Sequelize2DB, Sequelize3DB, influx, redis), redisRepository: NewRedisRepository(redis),
-		incomeRepository: NewIncomeRepository(Sequelize3DB), minerdashRepository: minerdash.NewMinerdashRepository(influx)}
+func NewWalletService() WalletServicer {
+	return &walletService{minerService: minerdash.NewMinerService(), redisRepository: NewRedisRepository(config.Red),
+		incomeRepository: NewIncomeRepository(config.Seq3), minerdashRepository: minerdash.NewMinerdashRepository(config.Influx)}
 }
 
 func (w *walletService) GetWalletInfo(walletId string) minerdash.WalletInfo {

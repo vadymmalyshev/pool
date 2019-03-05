@@ -1,8 +1,8 @@
 package income
 
 import (
+	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
-	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -17,8 +17,8 @@ type incomeService struct {
 	incomeRepository     IncomeRepositorer
 }
 
-func NewIncomeService(Sequelize2DB *gorm.DB, Sequelize3DB *gorm.DB) IncomeServicer {
-	return &incomeService{accountingRepository: NewAccountingRepository(Sequelize2DB), incomeRepository: NewIncomeRepository(Sequelize3DB)}
+func NewIncomeService() IncomeServicer {
+	return &incomeService{accountingRepository: NewAccountingRepository(config.Seq2), incomeRepository: NewIncomeRepository(config.Seq3)}
 }
 
 func NewBlockServiceWithRepo(repo AccointingRepositorer) IncomeServicer {
