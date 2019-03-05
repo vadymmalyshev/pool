@@ -18,16 +18,7 @@ type AccointingRepositorer interface {
 type AccountingRepository struct {
 	db *gorm.DB
 }
-/*
-func GetHaveonClient() *gorm.DB {
-	db, err := mysql.Connect(config.Sequelize2DB)
 
-	if err != nil {
-		log.Panic("failed to init mysql db :", err.Error())
-	}
-	return db
-}
-*/
 func NewAccountingRepository(db *gorm.DB) AccointingRepositorer {
 	return &AccountingRepository{db: db}
 }

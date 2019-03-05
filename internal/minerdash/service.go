@@ -2,9 +2,11 @@ package minerdash
 
 import (
 	"encoding/json"
+	"git.tor.ph/hiveon/pool/config"
 	"github.com/go-redis/redis"
 	"github.com/influxdata/influxdb1-client"
 	"math"
+	"reflect"
 	"sort"
 	"strconv"
 	"time"
@@ -33,6 +35,7 @@ type MinerServicer interface {
 	CalcWorkersStat(walletId string, workerId string) WorkersStatistic
 	GetWalletWorkerMapping() WalletWorkerMappingStatistic
 	CalcHashrate(count float64) float64
+	GetIndex() PoolData
 }
 
 type minerService struct {
@@ -147,6 +150,50 @@ func (m *minerService) GetHashrate(walletId string, workerId string) Hashrate {
 	hashrate.Data.Hashrate = m.CalcHashrate(hashrateRepo.Hashrate)
 	hashrate.Data.MeanHashrate24H = m.CalcHashrate(hashrateRepo.Hashrate24H)
 	return hashrate
+}
+
+func (m *minerService) GetIndex() PoolData {
+	hashrateCul, _ := strconv.ParseFloat(config.HashrateCul, 64)
+	hashrateCulDivider, _ := strconv.ParseFloat(config.HashrateCulDivider, 64)
+	hashrateConfig := hashrateCul / hashrateCulDivider
+
+	hashRate := m.minerdashRepository.GetPoolLatestShare()
+	miner := m.minerdashRepository.GetPoolMiner()
+	worker := m.minerdashRepository.GetPoolWorker()
+
+	poolData := PoolData{Code: 200}
+
+	if !reflect.DeepEqual(hashRate, Row{}) {
+		poolData.Data.Hashrate.Time = hashRate.Values[0][0].(string)
+		validShares := hashRate.Values[0][1]
+		if validShares != nil {
+			poolData.Data.Hashrate.ValidShares, _ = validShares.(json.Number).Float64()
+		}
+
+		if poolData.Data.Hashrate.ValidShares > 0 {
+			val := math.Round(poolData.Data.Hashrate.ValidShares * hashrateConfig)
+			if math.IsNaN(val) {val = 0}
+			poolData.Data.Hashrate.Hashrate = val
+		}
+	}
+
+	if !reflect.DeepEqual(miner, Row{}) {
+		poolData.Data.Miner.Time = miner.Values[0][0].(string)
+		minerCount, _ := miner.Values[0][1].(json.Number).Float64()
+		val := math.Round(minerCount/1000*10) / 10
+		if math.IsNaN(val) {val = 0}
+		poolData.Data.Miner.Count = val
+	}
+
+	if !reflect.DeepEqual(worker, Row{}) {
+		poolData.Data.Worker.Time = worker.Values[0][0].(string)
+		workerCount, _ := worker.Values[0][1].(json.Number).Float64()
+		val := math.Round(workerCount/1000*10) / 10
+		if math.IsNaN(val) {val = 0}
+		poolData.Data.Worker.Count = val
+	}
+
+	return poolData
 }
 
 //worker.list

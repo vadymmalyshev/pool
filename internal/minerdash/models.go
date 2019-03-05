@@ -205,3 +205,31 @@ type WorkerTotal struct {
 	Stale24hStake       float64 `json:"stale24hStake"`
 	Invalid24hStake     float64 `json:"invalid24hStake"`
 }
+
+type PoolData struct {
+	Code int `json:"code"`
+	Data struct {
+		Hashrate struct {
+			Time        string  `json:"time"`
+			ValidShares float64 `json:"validShares"`
+			Hashrate    float64 `json:"hashrate"`
+		} `json:"hashrate"`
+		Miner struct {
+			Time  string  `json:"time"`
+			Count float64 `json:"count"`
+		} `json:"miner"`
+		Worker struct {
+			Time  string  `json:"time"`
+			Count float64 `json:"count"`
+		} `json:"worker"`
+	} `json:"data"`
+}
+
+// Row represents a single row returned from the execution of a statement.
+type Row struct {
+	Name    string            `json:"name,omitempty"`
+	Tags    map[string]string `json:"tags,omitempty"`
+	Columns []string          `json:"columns,omitempty"`
+	Values  [][]interface{}   `json:"values,omitempty"`
+	Partial bool              `json:"partial,omitempty"`
+}

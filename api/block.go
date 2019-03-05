@@ -9,7 +9,7 @@ import (
 )
 
 type BlockAPI struct {
-	blockService BlockServicer
+	blockService IncomeServicer
 }
 
 func NewBlockAPI() *BlockAPI {
@@ -18,7 +18,7 @@ func NewBlockAPI() *BlockAPI {
 	if err != nil {
 		log.Panic("failed to init mysql Sequelize2DB db :", err.Error())
 	}
-	return &BlockAPI{blockService:NewBlockService(db)}
+	return &BlockAPI{blockService: NewIncomeService(db)}
 }
 
 func (h *BlockAPI) HandleGetBlockCount() gin.HandlerFunc {
