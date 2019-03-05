@@ -224,12 +224,3 @@ type PoolData struct {
 		} `json:"worker"`
 	} `json:"data"`
 }
-
-// Row represents a single row returned from the execution of a statement.
-type Row struct {
-	Name    string            `json:"name,omitempty"`
-	Tags    map[string]string `json:"tags,omitempty"`
-	Columns []string          `json:"columns,omitempty"`
-	Values  [][]interface{}   `json:"values,omitempty"`
-	Partial bool              `json:"partial,omitempty"`
-}

@@ -3,11 +3,10 @@ package minerdash
 import (
 	"encoding/json"
 	"fmt"
-	//"git.tor.ph/hiveon/pool/internal/platform/database/influx"
+	. "github.com/influxdata/influxdb1-client/models"
 
 	"git.tor.ph/hiveon/pool/config"
 	client "github.com/influxdata/influxdb1-client"
-	. "github.com/influxdata/influxdb1-client/models"
 	log "github.com/sirupsen/logrus"
 
 	"strings"

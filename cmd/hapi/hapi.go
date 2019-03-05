@@ -22,16 +22,15 @@ func main() {
 
 	r := gin.Default()
 
-	poolHandler := api.NewPoolAPI()
-	blockHandler := api.NewBlockAPI()
+	incomeHandler := api.NewIncomeAPI()
 	walletHandler := api.NewWalletAPI()
 	minerHandler := api.NewMinerAPI()
 	userHandler := api.NewUserAPI()
 
-	r.GET("/api/pool/index", poolHandler.HandleGetIndex())
-	r.GET("/api/pool/incomeHistory", poolHandler.HandleGetIncomeHistory())
+	r.GET("/api/pool/index", minerHandler.HandleGetIndex())
+	r.GET("/api/pool/incomeHistory", incomeHandler.HandleGetIncomeHistory())
 
-	r.GET("/api/block/count24h", blockHandler.HandleGetBlockCount())
+	r.GET("/api/block/count24h", incomeHandler.HandleGetBlockCount())
 
 	r.GET("/api/miner/ETH/:walletId", walletHandler.HandleGetWallet())
 

@@ -91,6 +91,7 @@ var (
 	PgOneDay                                                                                  string
 	MappingApi, WorkersAPI															          string
 	UseCasbin																			      bool
+	WorkerOfflineMin																		  int
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
@@ -148,7 +149,7 @@ func init() {
 	if len(AuthSignKey) < 32 {
 		panic("Token signing key must be at least 32 characters")
 	}
-
+	WorkerOfflineMin = viper.GetInt("app.config.pool.workerOfflineMin")
 	WorkerState = viper.GetString("app.config.pool.workerState")
 	PoolZoom = viper.GetString("app.config.pool.poolZoom")
 	ZoomConfigTime = viper.GetString("ZOOM_CONFIG.d.time")

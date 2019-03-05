@@ -126,3 +126,9 @@ func (h *MinerAPI) GetMiner() gin.HandlerFunc {
 		c.JSON(200, h.minerService.GetMiner(walletID, ""))
 	}
 }
+
+func (h *MinerAPI) HandleGetIndex() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(200, h.minerService.GetIndex())
+	}
+}

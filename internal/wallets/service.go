@@ -4,7 +4,6 @@ import (
 	. "git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	. "git.tor.ph/hiveon/pool/internal/redis"
-	. "git.tor.ph/hiveon/pool/models"
 	"github.com/go-redis/redis"
 	"encoding/json"
 	red "github.com/gomodule/redigo/redis"

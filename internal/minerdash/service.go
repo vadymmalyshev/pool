@@ -15,6 +15,7 @@ import (
 	. "git.tor.ph/hiveon/pool/internal/redis"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"
 	repo "git.tor.ph/hiveon/pool/internal/api/repository"
+	. "github.com/influxdata/influxdb1-client/models"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 )
