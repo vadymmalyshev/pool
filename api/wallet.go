@@ -3,7 +3,6 @@ package api
 import (
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/wallets"
-	. "git.tor.ph/hiveon/pool/internal/api/service"
 	"git.tor.ph/hiveon/pool/internal/platform/database/influx"
 	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
 	red "github.com/go-redis/redis"
@@ -13,7 +12,7 @@ import (
 )
 
 type WalletAPI struct {
-	walletService walletServicer
+	walletService WalletServicer
 }
 
 func NewWalletAPI() *WalletAPI {
