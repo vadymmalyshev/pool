@@ -32,6 +32,7 @@ type MinerServicer interface {
 	GetCountHistory(walletId string) WorkerCount
 	CalcWorkersStat(walletId string, workerId string) WorkersStatistic
 	GetWalletWorkerMapping() WalletWorkerMappingStatistic
+	CalcHashrate(count float64) float64
 }
 
 type minerService struct {
@@ -143,8 +144,8 @@ func (m *minerService) GetHashrate(walletId string, workerId string) Hashrate {
 
 	hashrateRepo := m.minerdashRepository.GetHashrate(walletId, workerId)
 	hashrate := Hashrate{Code: 200}
-	hashrate.Data.Hashrate = calcHashrate(hashrateRepo.Hashrate)
-	hashrate.Data.MeanHashrate24H = calcHashrate(hashrateRepo.Hashrate24H)
+	hashrate.Data.Hashrate = m.CalcHashrate(hashrateRepo.Hashrate)
+	hashrate.Data.MeanHashrate24H = m.CalcHashrate(hashrateRepo.Hashrate24H)
 	return hashrate
 }
 
@@ -200,9 +201,9 @@ func (m *minerService) getLatestWorker(walletId string) Workers {
 		worker.StaleShares = workersMap[k].StaleShares
 		worker.InvalidShares = workersMap[k].InvalidShares
 
-		worker.Hashrate1d = calcHashrate(workers1dMap[k].ValidShares)
+		worker.Hashrate1d = m.CalcHashrate(workers1dMap[k].ValidShares)
 		worker.MeanLocalHashrate1d = workers1dMap[k].MeanLocalHashrate1d
-		worker.Hashrate = calcHashrate(worker.ValidShares)
+		worker.Hashrate = m.CalcHashrate(worker.ValidShares)
 		workerResult = append(workerResult, worker)
 	}
 	return Workers{Code: 200, Data: workerResult}
@@ -346,7 +347,7 @@ func calcMeanHashrate(sharesDetails *[]SharesDetail) {
 	}
 }
 
-func calcHashrate(count float64) float64 {
+func (m *minerService) CalcHashrate(count float64) float64 {
 	hashRateCul := GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
 		GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
 

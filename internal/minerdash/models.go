@@ -143,3 +143,65 @@ type WalletWorkerMapping struct {
 	Worker string `json:"worker"`
 	Wallet string `json:"wallet"`
 }
+
+type WalletInfo struct {
+	Code    int            `json:"code"`
+	Total   WalletTotal    `json:"total"`
+	Shares  []SharesDetail `json:"shares"`
+	Workers []WalletWorker `json:"workers"`
+	History []TimeCount    `json:"history"`
+	Payouts []BillDetail   `json:"payouts"`
+}
+
+type WalletTotal struct {
+	Hashrate            float64 `json:"hashrate"`
+	MeanHashrate        float64 `json:"meanHashrate"`
+	ReportedHashrate    float64 `json:"reportedHashrate"`
+	ReportedHashrate24h float64 `json:"reportedHashrate24h"`
+	Valid               float64 `json:"valid"`
+	Invalid             float64 `json:"invalid"`
+	Balance             float64 `json:"balance"`
+	Valid24h            float64 `json:"valid24h"`
+	Stale24h            float64 `json:"stale24h"`
+	Invalid24h          float64 `json:"invalid24h"`
+	Stale24hStake       float64 `json:"stale24hStake"`
+	Invalid24hStake     float64 `json:"invalid24hStake"`
+	Expected24hUSD      float64 `json:"expected24hUSD"`
+	Expected24h         float64 `json:"expected24h"`
+	Expected7d          float64 `json:"expected7d"`
+	Expected7dUSD       float64 `json:"expected7dUSD"`
+	Online              int     `json:"online"`
+	Offline             int     `json:"offline"`
+}
+
+type WalletWorker struct {
+	Worker          string  `json:"worker"`
+	Time            string  `json:"time"`
+	Hashrate        float64 `json:"hashrate"`
+	Hashrate24h     float64 `json:"hashrate24h"`
+	MeanHashrate24h float64 `json:"meanHashrate24h"`
+	Invalid         float64 `json:"invalid"`
+	Stale           float64 `json:"stale"`
+	Valid           float64 `json:"valid"`
+	Online          bool    `json:"online"`
+}
+
+type WorkerInfo struct {
+	Code   int            `json:"code"`
+	Total  WorkerTotal    `json:"total"`
+	Shares []SharesDetail `json:"shares"`
+}
+
+type WorkerTotal struct {
+	Hashrate            float64 `json:"hashrate"`
+	MeanHashrate        float64 `json:"meanHashrate"`
+	ReportedHashrate    float64 `json:"reportedHashrate"`
+	ReportedHashrate24h float64 `json:"reportedHashrate24h"`
+	Valid               float64 `json:"valid"`
+	Invalid             float64 `json:"invalid"`
+	Valid24h            float64 `json:"valid24h"`
+	Stale24h            float64 `json:"stale24h"`
+	Invalid24h          float64 `json:"invalid24h"`
+	Stale24hStake       float64 `json:"stale24hStake"`
+	Invalid24hStake     float64 `json:"invalid24hStake"`
+}

@@ -1,4 +1,4 @@
-package repository
+package redis
 
 import (
 	red "github.com/go-redis/redis"
