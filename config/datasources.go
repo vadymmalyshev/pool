@@ -42,7 +42,7 @@ func init() {
 	}
 
 	DBName, _ := strconv.Atoi(Redis.Name)
-	Red := red.NewClient(&red.Options{
+	Red = red.NewClient(&red.Options{
 		Addr:     Redis.Host + ":" + strconv.Itoa(Redis.Port),
 		Password: Redis.Pass,
 		DB:       DBName,

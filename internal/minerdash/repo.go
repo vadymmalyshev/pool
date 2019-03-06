@@ -106,9 +106,9 @@ func (m *MinerdashRepository) GetETHHashrate() IncomeCurrency {
 	sql := fmt.Sprintf(`
 	SELECT 
 		mean(difficulty) as difficulty,
-		mean(cny) as cny, 
-		mean(usd) as usd
-		mean(btc) as btc 
+		mean(cny_float) as cny, 
+		mean(usd)       as usd,
+		mean(btc)       as btc 
 	FROM a_year.eth_stats WHERE time>now()-%s`, config.PoolZoom)
 
 	res := m.querySingle(sql)
@@ -136,7 +136,7 @@ func (m *MinerdashRepository) GetShares(walletID string, workerID string) Row {
 		sum(staleShares) as staleShares 
 	FROM 
 		two_hours.worker 
-	WHERE wallet=%s  
+	WHERE wallet='%s'
 		AND time>now()-%s `, walletID, time)
 
 	// if workerID provided
