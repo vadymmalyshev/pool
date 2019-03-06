@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	paramWorker = "workerId"
-	paramWallet = "walletId"
+	paramWorker = "workerID"
+	paramWallet = "walletID"
 )
 
 type MinerAPI struct {

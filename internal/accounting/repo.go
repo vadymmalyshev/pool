@@ -54,26 +54,25 @@ func (repo *AccountingRepository) GetBill(walletId string) *sql.Rows {
 
 func (repo *AccountingRepository) GetBillInfo(walletId string) RepoBillInfo {
 	var totalPaid float64
-
-	err := repo.db.Raw("select sum(paid) as totalPaid from payment_details where miner_wallet = ?", walletId).Scan(&totalPaid)
+	err := repo.db.Raw("select sum(paid) as totalPaid from payment_details where miner_wallet = ?", walletId).Row().Scan(&totalPaid)
 	if err != nil {
 		log.Error(err)
 	}
 
 	var payment Payment
 	var firstTime, balance string
-	err = repo.db.Raw("select paid,payment_id from payment_details where miner_wallet = ? order by id limit 1",
-		walletId).Scan(&payment)
+	err1 := repo.db.Raw("select paid,payment_id from payment_details where miner_wallet = ? order by id limit 1",
+		walletId).Row().Scan(&payment.firstPaid, &payment.paymentId)
+	if err1 != nil {
+		log.Error(err)
+	}
+
+	repo.db.Raw("select create_ts from payments where id = ?", payment.paymentId).Row().Scan(&firstTime)
 	if err != nil {
 		log.Error(err)
 	}
 
-	repo.db.Raw("select create_ts from payments where id=?", payment.paymentId).Row().Scan(&firstTime)
-	if err != nil {
-		log.Error(err)
-	}
-
-	repo.db.Raw("select balance from deposits where miner_wallet =?", walletId).Row().Scan(&balance)
+	repo.db.Raw("select balance from deposits where miner_wallet = ?", walletId).Row().Scan(&balance)
 	if err != nil {
 		log.Error(err)
 	}
