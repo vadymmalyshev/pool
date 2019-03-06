@@ -6,20 +6,19 @@ import (
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	. "git.tor.ph/hiveon/pool/internal/redis"
 	"encoding/json"
-	red "github.com/gomodule/redigo/redis"
 	log "github.com/sirupsen/logrus"
-	"github.com/jinzhu/gorm"
 	"math"
 	"strconv"
 	"time"
 )
 
 // Config stores connections to databases
+/*
 type Config struct {
 	Redis *red.Conn
 	DB    *gorm.DB
 }
-
+*/
 type WalletServicer interface {
 	GetWalletInfo(walletId string) minerdash.WalletInfo
 	GetWalletWorkerInfo(walletId string, workerId string) minerdash.WorkerInfo
@@ -182,9 +181,10 @@ func (w *walletService) makeNewWorkers(workers []minerdash.Worker, stat workerOn
 	}
 	return res
 }
+
 /*
 // GetWorkersPulse return workers pulse map.
-func (w WalletService) GetWorkersPulse() (map[string]WorkerPulse, error) {
+func (w *WalletService) GetWorkersPulse() (map[string]WorkerPulse, error) {
 	return GetWorkersPulse(*w.s.Redis, w.Address)
 }
 */

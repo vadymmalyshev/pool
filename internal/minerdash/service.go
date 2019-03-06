@@ -2,19 +2,19 @@ package minerdash
 
 import (
 	"encoding/json"
+
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"
 	. "git.tor.ph/hiveon/pool/internal/income"
 	. "git.tor.ph/hiveon/pool/internal/redis"
 	. "github.com/influxdata/influxdb1-client/models"
-	"github.com/jinzhu/gorm"
-	log "github.com/sirupsen/logrus"
 	"math"
-	"reflect"
 	"sort"
 	"strconv"
 	"time"
+	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 )
 
 // Service provides method with calculations of miner's job history
@@ -24,13 +24,13 @@ type Service struct {
 
 type MinerServicer interface {
 	GetFutureIncome() FutureIncome
-	GetBillInfo(walletId string) BillInfo
-	GetShares(walletId string, workerId string) Shares
-	GetBill(walletId string) Bill
-	GetMiner(walletId string, workerId string) MinerWorker
-	GetHashrate(walletId string, workerId string) Hashrate
-	GetCountHistory(walletId string) WorkerCount
-	CalcWorkersStat(walletId string, workerId string) WorkersStatistic
+	GetBillInfo(walletID string) BillInfo
+	GetShares(walletID string, workerID string) Shares
+	GetBill(walletID string) Bill
+	GetMiner(walletID string, workerID string) MinerWorker
+	GetHashrate(walletID string, workerID string) Hashrate
+	GetCountHistory(walletID string) WorkerCount
+	CalcWorkersStat(walletID string, workerID string) WorkersStatistic
 	GetWalletWorkerMapping() WalletWorkerMappingStatistic
 	CalcHashrate(count float64) float64
 	GetIndex() PoolData
@@ -94,8 +94,8 @@ func (m *minerService) GetBill(walletId string) Bill {
 	return Bill{Code: 200, Data: bills}
 }
 
-func (m *minerService) GetShares(walletId string, workerId string) Shares {
-	rows := m.minerdashRepository.GetShares(walletId, workerId)
+func (m *minerService) GetShares(walletID string, workerID string) Shares {
+	rows := m.minerdashRepository.GetShares(walletID, workerID)
 
 	sharesDetails := make([]SharesDetail, len(rows.Values))
 
@@ -110,7 +110,7 @@ func (m *minerService) GetShares(walletId string, workerId string) Shares {
 	removeExtraElements(&sharesDetails)
 	calcMeanHashrate(&sharesDetails)
 
-	rows = m.minerdashRepository.GetLocalHashrateResult(walletId, "")
+	rows = m.minerdashRepository.GetLocalHashrateResult(walletID, "")
 
 	timeMap := make(map[string]float64, len(rows.Values))
 	for _, row := range rows.Values {
@@ -124,26 +124,26 @@ func (m *minerService) GetShares(walletId string, workerId string) Shares {
 	return Shares{Code: 200, Data: sharesDetails}
 }
 
-func (m *minerService) GetMiner(walletId string, workerId string) MinerWorker {
+func (m *minerService) GetMiner(walletID string, workerID string) MinerWorker {
 
 	minerWorker := MinerWorker{}
-	minerWorker.Balance = m.getBalance(walletId)
-	minerWorker.Hashrate = m.GetHashrate(walletId, workerId)
-	minerWorker.Workers = m.getLatestWorker(walletId)
-	minerWorker.WorkerCounts = m.GetCountHistory(walletId)
+	minerWorker.Balance = m.getBalance(walletID)
+	minerWorker.Hashrate = m.GetHashrate(walletID, workerID)
+	minerWorker.Workers = m.getLatestWorker(walletID)
+	minerWorker.WorkerCounts = m.GetCountHistory(walletID)
 	return minerWorker
 }
 
-func (m *minerService) getBalance(walletId string) Balance {
+func (m *minerService) getBalance(walletID string) Balance {
 
 	balance := Balance{Code: 200}
-	balance.Data.Balance = m.accountingRepository.GetBalance(walletId)
+	balance.Data.Balance = m.accountingRepository.GetBalance(walletID)
 	return balance
 }
 
-func (m *minerService) GetHashrate(walletId string, workerId string) Hashrate {
+func (m *minerService) GetHashrate(walletID string, workerID string) Hashrate {
 
-	hashrateRepo := m.minerdashRepository.GetHashrate(walletId, workerId)
+	hashrateRepo := m.minerdashRepository.GetHashrate(walletID, workerID)
 	hashrate := Hashrate{Code: 200}
 	hashrate.Data.Hashrate = m.CalcHashrate(hashrateRepo.Hashrate)
 	hashrate.Data.MeanHashrate24H = m.CalcHashrate(hashrateRepo.Hashrate24H)
@@ -195,11 +195,11 @@ func (m *minerService) GetIndex() PoolData {
 }
 
 //worker.list
-func (m *minerService) getLatestWorker(walletId string) Workers {
+func (m *minerService) getLatestWorker(walletID string) Workers {
 	const msToSec = 1000000000
-	workers2 := m.redisRepository.GetLatestWorker(walletId)
-	workers := m.minerdashRepository.GetHashrate20m(walletId, "")
-	workers1dHashrate := m.minerdashRepository.GetAvgHashrate1d(walletId, "")
+	workers2 := m.redisRepository.GetLatestWorker(walletID)
+	workers := m.minerdashRepository.GetHashrate20m(walletID, "")
+	workers1dHashrate := m.minerdashRepository.GetAvgHashrate1d(walletID, "")
 
 	workersMap := make(map[string]Worker)
 	for _, w := range workers.Series {
@@ -254,8 +254,8 @@ func (m *minerService) getLatestWorker(walletId string) Workers {
 	return Workers{Code: 200, Data: workerResult}
 }
 
-func (m *minerService) GetCountHistory(walletId string) WorkerCount {
-	row := m.minerdashRepository.GetCountHistory(walletId)
+func (m *minerService) GetCountHistory(walletID string) WorkerCount {
+	row := m.minerdashRepository.GetCountHistory(walletID)
 	var timeCount []TimeCount
 
 	if row.Values != nil {
@@ -291,8 +291,8 @@ func (m *minerService) GetWalletWorkerMapping() WalletWorkerMappingStatistic {
 	return WalletWorkerMappingStatistic{200, walletWorkerMappingList}
 }
 
-func (m *minerService) CalcWorkersStat(walletId string, workerId string) WorkersStatistic {
-	workers := m.minerdashRepository.GetWorkers24hStatistic(walletId, workerId)
+func (m *minerService) CalcWorkersStat(walletID string, workerID string) WorkersStatistic {
+	workers := m.minerdashRepository.GetWorkers24hStatistic(walletID, workerID)
 	var workersList []Worker
 	var workerStatisticList []WorkerStatistic
 
