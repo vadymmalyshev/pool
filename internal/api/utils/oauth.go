@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/resty.v1"
-	. "git.tor.ph/hiveon/pool/internal/api/response"
+	. "git.tor.ph/hiveon/pool/models"
 
 )
 

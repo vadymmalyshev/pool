@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
-	repo "git.tor.ph/hiveon/pool/internal/api/repository"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"
 	. "git.tor.ph/hiveon/pool/internal/income"
 	. "git.tor.ph/hiveon/pool/internal/redis"
@@ -50,7 +49,7 @@ func NewMinerService() MinerServicer {
 }
 
 // for mockBlockRepo testing
-func NewMinerServiceWithRepo(incomeRepository IncomeRepositorer, minerdashRepository MinerdashRepositorer, accountingRepository AccointingRepositorer, redisRepository repo.IRedisRepository) MinerServicer {
+func NewMinerServiceWithRepo(incomeRepository IncomeRepositorer, minerdashRepository MinerdashRepositorer, accountingRepository AccointingRepositorer, redisRepository RedisRepositorer) MinerServicer {
 	return &minerService{incomeRepository: incomeRepository, minerdashRepository: minerdashRepository, accountingRepository: accountingRepository, redisRepository: redisRepository}
 }
 
