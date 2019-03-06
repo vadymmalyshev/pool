@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"git.tor.ph/hiveon/pool/config"
-	"git.tor.ph/hiveon/pool/internal/platform/redis"
+	"git.tor.ph/hiveon/pool/internal/platform/database/redis"
 
 	"github.com/sirupsen/logrus"
 
