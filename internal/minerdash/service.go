@@ -2,7 +2,7 @@ package minerdash
 
 import (
 	"encoding/json"
-
+	"reflect"
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"

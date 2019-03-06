@@ -36,12 +36,14 @@ func main() {
 	r.GET("/api/miner/eth/:walletID/:workerID", ethAPI.GetWalletsWorkerData())
 
 	r.GET("/api/miner/futureIncome", minerHandler.GetFutureIncome())
-	r.GET("/api/miner/:walletID/billInfo", minerHandler.GetBillInfo())
-	r.GET("/api/miner/:walletID/bill", minerHandler.GetBill())
-	r.GET("/api/miner/:walletID/shares", minerHandler.GetShares())
-	r.GET("/api/miner/:walletID/hashrate", minerHandler.GetHashrate())
-	r.GET("/api/miner/:walletID/workers/counts", minerHandler.GetCountHistory())
-	r.GET("/api/miner/:walletID/workers", minerHandler.GetMiner())
+
+	r.GET("/api/miner/billInfo/:walletID", minerHandler.GetBillInfo())
+
+	r.GET("/api/miner/bill/:walletID", minerHandler.GetBill())
+	r.GET("/api/miner/shares/:walletID", minerHandler.GetShares())
+	r.GET("/api/miner/hashrate/:walletID", minerHandler.GetHashrate())
+	r.GET("/api/miner/workers/counts/:walletID", minerHandler.GetCountHistory())
+	r.GET("/api/miner/workers/list/:walletID", minerHandler.GetMiner())
 
 	r.GET("/api/private/statistic/worker/:workerID", minerHandler.GetWorkerStatistic())
 	r.GET("/api/private/statistic/wallet/:walletID", minerHandler.GetWalletStatistic())
@@ -51,7 +53,7 @@ func main() {
 	r.GET("/api/private/wallet/:fid", userHandler.GetUserWallet())
 	r.POST("/api/private/wallet", userHandler.PostUserWallet())
 
-	initCasbinMiddleware(r)
+	//initCasbinMiddleware(r)
 
 	go func() {
 		errs <- r.Run(fmt.Sprintf(":%d", config.API.Port))
