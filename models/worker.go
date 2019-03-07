@@ -9,11 +9,13 @@ import (
 const (
 	tableNameWorker      = "workers"
 	tableNameStatistic   = "billing_statistic"
+	tableNameMoney       = "billing_money"
 )
 
 type Worker struct {
 	gorm.Model
 	Name                string `gorm:"unique;not null"`
+	Percentage          float64
 }
 
 func (Worker) TableName() string {
@@ -36,10 +38,28 @@ type BillingWorkerStatistic struct {
 	WalletID            uint
 }
 
+type BillingWorkerMoney struct {
+	gorm.Model
+	ETH                 float64
+	USD                 float64
+	CNY                 float64
+	Commission          float64
+	Worker              Worker `gorm:"foreignkey:WorkerID"`
+	WorkerID            uint
+}
+
 func (BillingWorkerStatistic) TableName() string {
 	return tableNameStatistic
 }
 
 func (BillingWorkerStatistic) AdminPath() string {
 	return fmt.Sprintf("%s/%s", config.AdminPrefix, tableNameStatistic)
+}
+
+func (BillingWorkerMoney) TableName() string {
+	return tableNameMoney
+}
+
+func (BillingWorkerMoney) AdminPath() string {
+	return fmt.Sprintf("%s/%s", config.AdminPrefix, tableNameMoney)
 }

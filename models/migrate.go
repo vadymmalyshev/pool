@@ -15,6 +15,7 @@ func Migrate(db *gorm.DB) error {
 		&Coin{},
 		&Worker{},
 		&BillingWorkerStatistic{},
+		&BillingWorkerMoney{},
 	}
 
 	var tableNames string
