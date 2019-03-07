@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -20,6 +21,8 @@ func NewBillingCalculator() (*BillingCalculator) {
 }
 
 func (b BillingCalculator) StartCalculation(er chan error) {
+	b.loadWorkerWalletStatistic() //testing
+
 	ctab := crontab.New()
 	err := ctab.AddJob("0 1 * * *", b.loadWorkerWalletStatistic)
 	if err != nil {
@@ -30,8 +33,22 @@ func (b BillingCalculator) StartCalculation(er chan error) {
 }
 
 func (b BillingCalculator)loadWorkerWalletStatistic() {
+	rates := b.fetchCurrencyRates()
 	WalletWorkerMapping := b.consumeMapping()
-	b.consumeStatistic(WalletWorkerMapping)
+	b.generateStatistic(WalletWorkerMapping, rates)
+
+}
+
+func (b BillingCalculator) fetchCurrencyRates() map[string]interface{} {
+	log.Info("Consuming the currency rates : ", time.Now())
+	ethAPI := "http://127.0.0.1:8090/api/pool/futureIncome" //testing
+	resp, err := http.Get(ethAPI)
+	if err != nil {
+		log.Error(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	return utils.ParseJSON(string(body), false)
 }
 
 func (b BillingCalculator) consumeMapping() map[string]string {
@@ -68,7 +85,7 @@ func (b BillingCalculator) consumeMapping() map[string]string {
 	return WalletWorkerMapping
 }
 
-func (b BillingCalculator) consumeStatistic(WalletWorkerMapping map[string]string) {
+func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]string, rates map[string]interface{}) {
 	log.Info("Consuming wallet/worker statistic started: ", time.Now())
 
 	WorkersAPI := config.WorkersAPI
@@ -82,6 +99,20 @@ func (b BillingCalculator) consumeStatistic(WalletWorkerMapping map[string]strin
 	}
 	res := utils.ParseJSON(string(body), false)
 
+	// hashrate and currency rates
+	hashrateCul, _ := strconv.ParseFloat(config.HashrateCul, 64)
+	hashrateCulDivider, _ := strconv.ParseFloat(config.HashrateCulDivider, 64)
+	hashrateConfig := hashrateCul / hashrateCulDivider
+	USD := rates["usd"].(float64)
+	BTC := rates["btc"].(float64)
+	CNY := rates["cny"].(float64)
+
+	currencyMap := make(map[string]float64)
+	currencyMap["usd"] = USD
+	currencyMap["btc"] = BTC
+	currencyMap["cny"] = CNY
+
+	counter := 0
 	for k,v := range res {
 		if k == "data" {
 			value := v.([]interface{})
@@ -98,11 +129,30 @@ func (b BillingCalculator) consumeStatistic(WalletWorkerMapping map[string]strin
 					wallet := WalletWorkerMapping[worker]
 					stat := BillingWorkerStatistic{ValidShares:validShares,InvalidShares:invalidShares,
 						StaleShares:staleShares, ActivityPercentage:percentage}
-					b.BillingRepo.SaveWorkerStatistic(stat, wallet, worker)
+					work, err := b.BillingRepo.SaveWorkerStatistic(stat, wallet, worker)
+					counter ++
+					if counter == 10 {
+						break
+					}
+					if err != nil {
+						log.Error(err)
+					} else {
+						b.calculateAndSaveCommission(stat, hashrateConfig, currencyMap, work)
+					}
 				}
 			}
 		}
 	}
 	log.Info("Consuming wallet/worker statistic finished: ", time.Now())
+}
+
+func (b BillingCalculator) calculateAndSaveCommission(stat BillingWorkerStatistic, hashrateConfig float64, rates map[string]float64, worker *Worker) {
+	hashrate := stat.ValidShares * hashrateConfig/100000000
+	USD := hashrate * rates["usd"]
+	BTC := hashrate * rates["btc"]
+	CNY := hashrate * rates["cny"]
+	Commission := USD * config.DefaultPercentage
+	workerCommission := BillingWorkerMoney{Hashrate: hashrate, USD: USD, BTC:BTC, CNY:CNY, CommissionUSD: Commission, Worker: *worker}
+	b.BillingRepo.SaveWorkerMoney(workerCommission)
 }
 

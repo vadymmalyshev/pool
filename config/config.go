@@ -92,6 +92,7 @@ var (
 	MappingApi, WorkersAPI															          string
 	UseCasbin																			      bool
 	WorkerOfflineMin																		  int
+	DefaultPercentage                             										      float64
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
@@ -161,6 +162,7 @@ func init() {
 	checkValueEmpty(HashrateCul)
 	HashrateCulDivider = viper.GetString("app.config.pool.hashrate.hashrateCulDivider")
 	checkValueEmpty(HashrateCulDivider)
+	DefaultPercentage = viper.GetFloat64("WORKER_STAT_CONFIG.defaultPercentage")
 	PgOneDay = viper.GetString("app.config.pool.pgOneDay")
 	MappingApi = viper.GetString("pool.mapping_api")
 	checkValueEmpty(MappingApi)

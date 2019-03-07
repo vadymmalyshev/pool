@@ -2,9 +2,10 @@ package billing
 
 import (
 	"fmt"
+	"git.tor.ph/hiveon/pool/models"
 	"git.tor.ph/hiveon/pool/config"
+	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	. "git.tor.ph/hiveon/pool/models"
-	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
 	"github.com/jinzhu/gorm"
 	"log"
 	"time"
@@ -19,7 +20,9 @@ func NewBillingRepository() *BillingRepository {
 }
 
 func GetBillingRepositoryClient() *gorm.DB {
-	db, err := mysql.Connect(config.DB)
+	db, err := postgres.Connect(config.DB)
+
+	err = models.Migrate(db) // testing
 
 	if err != nil {
 		log.Panic("failed to init billing db :", err.Error())
@@ -62,13 +65,28 @@ func (r *BillingRepository) CreateWorkerIfNotExists(worker string) (*Worker, err
 	return &billingWorker, nil
 }
 
-func (r *BillingRepository) CreateWalletIfNotExists(wallet string) (*Wallet, error) {
+func (r *BillingRepository) CreateWalletIfNotExists(wallet string, coinName string) (*Wallet, error) {
 	var billingWallet Wallet
-	res := r.client.FirstOrCreate(&billingWallet, Wallet{Address: wallet})
+	coin, err :=  r.CreateCoinIfNotExists(coinName)
+	if err != nil {
+		return nil, err
+	}
+	w := Wallet{Address: wallet, CoinID: coin.ID}
+	res := r.client.FirstOrCreate(&billingWallet, w)
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
 	return &billingWallet, nil
+}
+
+func (r *BillingRepository) CreateCoinIfNotExists(coin string) (*Coin, error) {
+	var billingCoin Coin
+	res := r.client.FirstOrCreate(&billingCoin, Coin{Name: coin})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return &billingCoin, nil
 }
 
 func (r *BillingRepository) DeleteWallet(name string) {
@@ -109,13 +127,18 @@ func (r *BillingRepository) FindWorkerByName(name string) (Worker, error) {
 	return billingWorker, err
 }
 
-func (r *BillingRepository) SaveWorkerStatistic(workerStatistic BillingWorkerStatistic, wallet string, worker string) error {
+func (r *BillingRepository) SaveWorkerStatistic(workerStatistic BillingWorkerStatistic, wallet string, worker string) (*Worker, error) {
 	dbWorker, _ := r.CreateWorkerIfNotExists(worker)
-	dbWallet, _ := r.CreateWalletIfNotExists(wallet)
+	dbWallet, _ := r.CreateWalletIfNotExists(wallet, "ETH") // TODO:
 	workerStatistic.Worker = *dbWorker
 	workerStatistic.Wallet = *dbWallet
 	r.client.NewRecord(workerStatistic)
-	return r.client.Create(&workerStatistic).Error
+	return dbWorker, r.client.Create(&workerStatistic).Error
+}
+
+func (r *BillingRepository) SaveWorkerMoney(moneyStatistic BillingWorkerMoney) error {
+	r.client.NewRecord(moneyStatistic)
+	return r.client.Create(&moneyStatistic).Error
 }
 
 

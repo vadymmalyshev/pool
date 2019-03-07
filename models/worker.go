@@ -40,10 +40,11 @@ type BillingWorkerStatistic struct {
 
 type BillingWorkerMoney struct {
 	gorm.Model
-	ETH                 float64
+	Hashrate            float64
 	USD                 float64
 	CNY                 float64
-	Commission          float64
+	BTC                 float64
+	CommissionUSD       float64
 	Worker              Worker `gorm:"foreignkey:WorkerID"`
 	WorkerID            uint
 }

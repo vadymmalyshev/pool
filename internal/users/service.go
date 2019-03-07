@@ -2,7 +2,7 @@ package users
 
 import (
 	"git.tor.ph/hiveon/pool/config"
-	. "git.tor.ph/hiveon/pool/models"
+	."git.tor.ph/hiveon/pool/models"
 )
 
 type UserServicer interface {
@@ -25,7 +25,7 @@ func (u *userService) GetUserWallet(userID uint) []Wallet {
 func (u *userService) SaveUserWallet(userID uint, wallet string, coinName string) {
 	coin, _ := u.userRepository.CreateCoinIfNotExists(coinName)
 
-	w:= Wallet{UserID: userID, Address:wallet, Coin:*coin}
+	w:= Wallet{Address:wallet, Coin:*coin}
 	u.userRepository.SaveUserWallet(w)
 	return
 }

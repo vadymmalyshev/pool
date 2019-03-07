@@ -1,4 +1,4 @@
-package hbilling
+package main
 
 import (
 	"fmt"

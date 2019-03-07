@@ -111,7 +111,7 @@ WORKER_STAT_CONFIG:
     time: "25h"
     zoom: "5m"
     workerOfflineMin: 1m
-  defaultPercentage: 3
+  defaultPercentage: 0.03
 
 pool:
   workers_api: "http://127.0.0.1:8090/api/private/statistic/workers"
