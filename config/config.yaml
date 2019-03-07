@@ -108,7 +108,7 @@ ZOOM_CONFIG:
 
 WORKER_STAT_CONFIG:
   d:
-    time: "24h"
+    time: "25h"
     zoom: "5m"
     workerOfflineMin: 1m
 

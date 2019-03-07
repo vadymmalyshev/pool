@@ -293,7 +293,7 @@ func (m *MinerdashRepository) GetWorkers24hStatistic(walletID string, workerID s
 	}
 
 	if len(strings.TrimSpace(workerID)) > 0 {
-		sql += fmt.Sprintf(" rig='%s' and time>now()-%s group by time(%s), rig", workerID, time, zoom)
+		sql += fmt.Sprintf(" rig='%s' and time>now()-%s and time<=now()-1h group by time(%s), rig", workerID, time, zoom)
 	} 
 	
 	sql += fmt.Sprintf(" time>now()-%s GROUP BY time(%s), rig", time, zoom)
