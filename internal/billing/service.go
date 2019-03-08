@@ -22,8 +22,6 @@ func NewBillingCalculator() (*BillingCalculator) {
 }
 
 func (b BillingCalculator) StartCalculation(er chan error) {
-	b.loadWorkerWalletStatistic() //testing
-
 	ctab := crontab.New()
 	err := ctab.AddJob("0 1 * * *", b.loadWorkerWalletStatistic)
 	if err != nil {
