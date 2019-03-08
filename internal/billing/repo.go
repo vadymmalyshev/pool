@@ -2,7 +2,6 @@ package billing
 
 import (
 	"fmt"
-	"git.tor.ph/hiveon/pool/models"
 	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	. "git.tor.ph/hiveon/pool/models"
@@ -10,6 +9,23 @@ import (
 	"log"
 	"time"
 )
+
+type BillingRepositorer interface {
+	SaveWallet(wallet Wallet) error
+	BulkUpdateWallets(wallets []Wallet) error
+	BulkUpdateWorkers(workers []Worker) error
+	CreateWorkerIfNotExists(worker string) (*Worker, error)
+	CreateWalletIfNotExists(wallet string, coinName string) (*Wallet, error)
+	CreateCoinIfNotExists(coin string) (*Coin, error)
+	DeleteWallet(name string)
+	FindWalletByName(name string) (Wallet, error)
+	SaveWorker(worker Worker) error
+	DeleteWorker(name string)
+	FindWorkerByName(name string) (Worker, error)
+	GetWalletEarning(wallet string, date string) (WalletEarning)
+	SaveWorkerStatistic(workerStatistic BillingWorkerStatistic, wallet string, worker string) (*Worker, error)
+	SaveWorkerMoney(moneyStatistic BillingWorkerMoney) error
+}
 
 type BillingRepository struct {
 	client *gorm.DB
@@ -22,7 +38,7 @@ func NewBillingRepository() *BillingRepository {
 func GetBillingRepositoryClient() *gorm.DB {
 	db, err := postgres.Connect(config.DB)
 
-	err = models.Migrate(db) // testing
+	//err = models.Migrate(db) // testing
 
 	if err != nil {
 		log.Panic("failed to init billing db :", err.Error())
@@ -127,9 +143,29 @@ func (r *BillingRepository) FindWorkerByName(name string) (Worker, error) {
 	return billingWorker, err
 }
 
+func (r *BillingRepository) GetWalletEarning(wallet string, date string) (WalletEarning) {
+	var result Earning
+
+	sql :=  fmt.Sprintf(` select w.address, sum(hashrate) as hashrate, sum(usd) as usd, sum(cny) as cny, sum(btc) as btc, sum(commission_usd) as commission
+	from billing_money m
+	join billing_statistic b
+	on b.worker_id = m.worker_id
+	join wallets w
+	on w.id = b.wallet_id
+	where to_char((m.created_at - INTERVAL '1 DAY'), 'DD-Mon-YYYY') = '%s'
+    and w.address = '%s'
+    group by w.address`, date, wallet)
+
+	if err := r.client.Raw(sql).Row().Scan(&result.Address, &result.Hashrate, &result.USD, &result.CNY, &result.BTC, &result.Commission_USD); err != nil {
+		fmt.Errorf(err.Error())
+	}
+	result.Date = date
+	return WalletEarning{200,result}
+}
+
 func (r *BillingRepository) SaveWorkerStatistic(workerStatistic BillingWorkerStatistic, wallet string, worker string) (*Worker, error) {
 	dbWorker, _ := r.CreateWorkerIfNotExists(worker)
-	dbWallet, _ := r.CreateWalletIfNotExists(wallet, "ETH") // TODO:
+	dbWallet, _ := r.CreateWalletIfNotExists(wallet, "ETH")
 	workerStatistic.Worker = *dbWorker
 	workerStatistic.Wallet = *dbWallet
 	r.client.NewRecord(workerStatistic)
@@ -140,6 +176,8 @@ func (r *BillingRepository) SaveWorkerMoney(moneyStatistic BillingWorkerMoney) e
 	r.client.NewRecord(moneyStatistic)
 	return r.client.Create(&moneyStatistic).Error
 }
+
+
 
 
 

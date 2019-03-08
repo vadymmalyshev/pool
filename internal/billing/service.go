@@ -7,6 +7,7 @@ import (
 	"github.com/mileusna/crontab"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -112,7 +113,6 @@ func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]stri
 	currencyMap["btc"] = BTC
 	currencyMap["cny"] = CNY
 
-	counter := 0
 	for k,v := range res {
 		if k == "data" {
 			value := v.([]interface{})
@@ -130,10 +130,7 @@ func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]stri
 					stat := BillingWorkerStatistic{ValidShares:validShares,InvalidShares:invalidShares,
 						StaleShares:staleShares, ActivityPercentage:percentage}
 					work, err := b.BillingRepo.SaveWorkerStatistic(stat, wallet, worker)
-					counter ++
-					if counter == 10 {
-						break
-					}
+
 					if err != nil {
 						log.Error(err)
 					} else {
@@ -147,12 +144,17 @@ func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]stri
 }
 
 func (b BillingCalculator) calculateAndSaveCommission(stat BillingWorkerStatistic, hashrateConfig float64, rates map[string]float64, worker *Worker) {
-	hashrate := stat.ValidShares * hashrateConfig/100000000
-	USD := hashrate * rates["usd"]
-	BTC := hashrate * rates["btc"]
-	CNY := hashrate * rates["cny"]
-	Commission := USD * config.DefaultPercentage
+	hashrate := stat.ValidShares * hashrateConfig
+	hashrate_ := hashrate/100000000
+	USD := roundFloat(hashrate_ * rates["usd"])
+	BTC := roundFloat(hashrate_ * rates["btc"])
+	CNY := roundFloat(hashrate_ * rates["cny"])
+
+	Commission := roundFloat(USD * config.DefaultPercentage)
 	workerCommission := BillingWorkerMoney{Hashrate: hashrate, USD: USD, BTC:BTC, CNY:CNY, CommissionUSD: Commission, Worker: *worker}
 	b.BillingRepo.SaveWorkerMoney(workerCommission)
 }
 
+func roundFloat(value float64) float64{
+	return math.Round(value * 100) / 100
+}

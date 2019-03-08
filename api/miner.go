@@ -8,6 +8,7 @@ import (
 const (
 	paramWorker = "workerID"
 	paramWallet = "walletID"
+	paramDate = "date"
 )
 
 type MinerAPI struct {

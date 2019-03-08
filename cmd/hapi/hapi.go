@@ -27,6 +27,7 @@ func main() {
 	ethAPI := api.NewEthAPI()
 	minerHandler := api.NewMinerAPI()
 	userHandler := api.NewUserAPI()
+	billingHandler := api.NewBillingAPI()
 
 	r.GET("/api/pool/index", minerHandler.HandleGetIndex())
 	r.GET("/api/pool/incomeHistory", incomeHandler.HandleGetIncomeHistory())
@@ -41,6 +42,7 @@ func main() {
 	r.GET("/api/eth/:walletID/hashrate", minerHandler.GetHashrate())
 	r.GET("/api/eth/:walletID/workers/counts", minerHandler.GetCountHistory())
 	r.GET("/api/eth/:walletID/workers/list", minerHandler.GetMiner())
+	r.GET("/api/eth/:walletID/date/:date/earning", billingHandler.HandleGetWalletEarning())
 
 	r.GET("/api/private/statistic/worker/:workerID", minerHandler.GetWorkerStatistic())
 	r.GET("/api/private/statistic/wallet/:walletID", minerHandler.GetWalletStatistic())
