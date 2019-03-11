@@ -10,6 +10,7 @@ import (
 	"git.tor.ph/hiveon/idp/models/users"
 	"git.tor.ph/hiveon/pool/config"
 	internalAdmin "git.tor.ph/hiveon/pool/internal/admin"
+	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
 	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/models"
 
@@ -68,14 +69,21 @@ func runServer(cmd *cobra.Command, args []string) {
 		logrus.Panicf("failed to init idp db: %s", err)
 	}
 
+	seq2, err := mysql.Connect(config.Sequelize2DB)
+
+	if err != nil {
+		logrus.Panicf("failed to init seq2 db: %s", err)
+	}
+
 	logrus.Info("hAdmin server launched")
 
 	admin := admin.New(&admin.AdminConfig{DB: idpdb})
-	admin.GetRouter().Use(internalAdmin.SwitchDatabasesMiddleware(db))
+	admin.GetRouter().Use(internalAdmin.SwitchDatabasesMiddleware(db, seq2))
 
 	admin.AddResource(&models.Wallet{})
 	admin.AddResource(&models.Coin{})
 	admin.AddResource(&users.User{})
+	admin.AddResource(&models.Blacklist{})
 
 	mux := http.NewServeMux()
 	admin.MountTo("/admin", mux)
