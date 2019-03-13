@@ -22,12 +22,14 @@ func main() {
 
 	r := gin.Default()
 
-
 	incomeHandler := api.NewIncomeAPI()
 	ethAPI := api.NewEthAPI()
 	minerHandler := api.NewMinerAPI()
 	userHandler := api.NewUserAPI()
 	billingHandler := api.NewBillingAPI()
+
+	casbinRuleHandler := api.NewCasbinRuleAPI()
+	casbinRuleHandler.MigrateRule()
 
 	r.GET("/api/pool/index", minerHandler.HandleGetIndex())
 	r.GET("/api/pool/incomeHistory", incomeHandler.HandleGetIncomeHistory())
@@ -51,6 +53,11 @@ func main() {
 
 	r.GET("/api/private/wallet/:fid", userHandler.GetUserWallet())
 	r.POST("/api/private/wallet", userHandler.PostUserWallet())
+
+	r.GET("/api/rule/get/:ruleID", casbinRuleHandler.GetCasbinRule())
+	r.POST("/api/rule/create", casbinRuleHandler.CreateCasbinRule())
+	r.PUT("/api/rule/update", casbinRuleHandler.UpdateCasbinRule())
+	r.DELETE("/api/rule/delete/:ruleID", casbinRuleHandler.DeleteCasbianRule())
 
 	initCasbinMiddleware(r)
 
