@@ -2,6 +2,7 @@ package accounting
 
 import (
 	"database/sql"
+	"fmt"
 
 	"git.tor.ph/hiveon/pool/config"
 	"github.com/jinzhu/gorm"
@@ -9,9 +10,7 @@ import (
 )
 
 type AccointingRepositorer interface {
-	// GetBlock24NotUnckle
 	GetNormalBlocks24h() int
-	// GetBlock24Uncle
 	GetUncleBlocks24h() int
 	GetBillInfo(walletId string) RepoBillInfo
 	GetBill(walletId string) *sql.Rows
@@ -33,21 +32,39 @@ func (repo *AccountingRepository) queryIntSingle(query string) int {
 	return result
 }
 
+// GetNormalBlocks24h returns a count of only normal blocks mined by the pool by last day
 func (repo *AccountingRepository) GetNormalBlocks24h() int {
-	sql := "select count(id) as count from blocks as b where is_uncle=0 and b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval " +
-		config.PgOneDay + ")) * 1000"
+	sql := fmt.Sprintf(`
+		SELECT count(id) as count 
+		FROM blocks as b 
+		WHERE is_uncle=0 AND 
+		b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval %s)) * 1000`, config.PgOneDay)
+
 	return repo.queryIntSingle(sql)
 }
 
+// GetUncleBlocks24h returns a count of only normal blocks mined by the pool by last day
 func (repo *AccountingRepository) GetUncleBlocks24h() int {
-	sql := "select count(id) as count from blocks as b where is_uncle=1 and b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval " +
-		config.PgOneDay + ")) * 1000"
+	sql := fmt.Sprintf(`
+		SELECT count(id) as count 
+		FROM blocks as b 
+		WHERE is_uncle=1 AND 
+		b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval %s)) * 1000`, config.PgOneDay)
+
 	return repo.queryIntSingle(sql)
 }
 
 func (repo *AccountingRepository) GetBill(walletId string) *sql.Rows {
-	rows, err := repo.db.Raw("select p.id, pd.paid, p.status, p.create_ts, p.tx_hash  from payment_details pd "+
-		"inner join payments p on p.id = pd.id where pd.miner_wallet = ? order by pd.id desc limit 30", walletId).Rows()
+	sql := fmt.Sprintf(`
+		SELECT p.id, pd.paid, p.status, p.create_ts, p.tx_hash 
+		FROM payment_details pd 
+		INNER JOIN payments p ON p.id = pd.id 
+		WHERE pd.miner_wallet = %s 
+		ORDER BY pd.id desc 
+		LIMIT 30`, walletId)
+
+	rows, err := repo.db.Raw(sql).Rows()
+
 	if err != nil {
 		log.Error(err)
 	}
@@ -57,36 +74,54 @@ func (repo *AccountingRepository) GetBill(walletId string) *sql.Rows {
 
 func (repo *AccountingRepository) GetBillInfo(walletId string) RepoBillInfo {
 	var totalPaid float64
-	err := repo.db.Raw("select sum(paid) as totalPaid from payment_details where miner_wallet = ?", walletId).Row().Scan(&totalPaid)
+	err := repo.db.Raw(`
+		SELECT sum(paid) as totalPaid 
+		FROM payment_details 
+		WHERE miner_wallet = ?`, walletId).Row().Scan(&totalPaid)
+
 	if err != nil {
 		log.Error(err)
 	}
 
 	var payment Payment
 	var firstTime, balance string
-	err1 := repo.db.Raw("select paid,payment_id from payment_details where miner_wallet = ? order by id limit 1",
-		walletId).Row().Scan(&payment.firstPaid, &payment.paymentId)
+	err1 := repo.db.Raw(`
+		SELECT paid,payment_id 
+		FROM payment_details 
+		WHERE miner_wallet = ? 
+		ORDER BY id LIMIT 1`, walletId).Row().Scan(&payment.firstPaid, &payment.paymentId)
 	if err1 != nil {
 		log.Error(err)
 	}
 
-	repo.db.Raw("select create_ts from payments where id = ?", payment.paymentId).Row().Scan(&firstTime)
+	repo.db.Raw(`
+		SELECT create_ts 
+		FROM payments 
+		WHERE id = ?`, payment.paymentId).Row().Scan(&firstTime)
+
 	if err != nil {
 		log.Error(err)
 	}
 
-	repo.db.Raw("select balance from deposits where miner_wallet = ?", walletId).Row().Scan(&balance)
+	repo.db.Raw(`
+		SELECT balance 
+		FROM deposits 
+		WHERE miner_wallet = ?`, walletId).Row().Scan(&balance)
+
 	if err != nil {
 		log.Error(err)
 	}
 
 	return RepoBillInfo{Balance: balance, FirstPaid: payment.firstPaid, FirstTime: firstTime, TotalPaid: totalPaid}
-
 }
 
 func (repo *AccountingRepository) GetBalance(walletId string) float64 {
 	var res float64
-	err := repo.db.Raw("select balance from deposits where miner_wallet = ?", walletId).Row().Scan(&res)
+
+	err := repo.db.Raw(`
+		SELECT balance 
+		FROM deposits 
+		WHERE miner_wallet = ?`, walletId).Row().Scan(&res)
 	if err != nil {
 		log.Error(err)
 	}
