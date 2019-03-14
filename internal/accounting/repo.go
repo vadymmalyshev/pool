@@ -2,14 +2,17 @@ package accounting
 
 import (
 	"database/sql"
+
 	"git.tor.ph/hiveon/pool/config"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 )
 
 type AccointingRepositorer interface {
-	GetBlock24NotUnckle() int
-	GetBlock24Uncle() int
+	// GetBlock24NotUnckle
+	GetNormalBlocks24h() int
+	// GetBlock24Uncle
+	GetUncleBlocks24h() int
 	GetBillInfo(walletId string) RepoBillInfo
 	GetBill(walletId string) *sql.Rows
 	GetBalance(walletId string) float64
@@ -30,20 +33,20 @@ func (repo *AccountingRepository) queryIntSingle(query string) int {
 	return result
 }
 
-func (repo *AccountingRepository) GetBlock24NotUnckle() int {
+func (repo *AccountingRepository) GetNormalBlocks24h() int {
 	sql := "select count(id) as count from blocks as b where is_uncle=0 and b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval " +
 		config.PgOneDay + ")) * 1000"
 	return repo.queryIntSingle(sql)
 }
 
-func (repo *AccountingRepository) GetBlock24Uncle() int {
+func (repo *AccountingRepository) GetUncleBlocks24h() int {
 	sql := "select count(id) as count from blocks as b where is_uncle=1 and b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval " +
 		config.PgOneDay + ")) * 1000"
 	return repo.queryIntSingle(sql)
 }
 
 func (repo *AccountingRepository) GetBill(walletId string) *sql.Rows {
-	rows, err := repo.db.Raw("select p.id, pd.paid, p.status, p.create_ts, p.tx_hash  from payment_details pd " +
+	rows, err := repo.db.Raw("select p.id, pd.paid, p.status, p.create_ts, p.tx_hash  from payment_details pd "+
 		"inner join payments p on p.id = pd.id where pd.miner_wallet = ? order by pd.id desc limit 30", walletId).Rows()
 	if err != nil {
 		log.Error(err)
@@ -89,4 +92,3 @@ func (repo *AccountingRepository) GetBalance(walletId string) float64 {
 	}
 	return res
 }
-

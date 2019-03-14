@@ -1,10 +1,11 @@
 package income
 
 import (
+	"time"
+
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type IncomeServicer interface {
@@ -27,8 +28,8 @@ func NewBlockServiceWithRepo(repo AccointingRepositorer) IncomeServicer {
 
 func (b *incomeService) GetBlockCount() BlockCount {
 	blockData := BlockCount{Code: 200}
-	blockData.Data.Uncles = b.accountingRepository.GetBlock24Uncle()
-	blockData.Data.Blocks = b.accountingRepository.GetBlock24NotUnckle()
+	blockData.Data.Uncles = b.accountingRepository.GetUncleBlocks24h()
+	blockData.Data.Blocks = b.accountingRepository.GetNormalBlocks24h()
 	return blockData
 }
 
@@ -51,4 +52,3 @@ func (b *incomeService) GetIncomeHistory() IncomeHistory {
 	incomeHistory.Data = incomeSlice
 	return incomeHistory
 }
-
