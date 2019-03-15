@@ -1,0 +1,119 @@
+hydra:
+  admin: "http://localhost:4445"
+  api: "http://localhost:4444"  
+  docker: idp_hydra
+
+sequelize2:
+  host: hiveos-eth-prod.cyzben5dhs1h.eu-central-1.rds.amazonaws.com
+  port: 3306
+  name: hiveos_eth
+  user: hiveos_eth_ro
+  sslmode: false
+  password: 7C9RAXMGQKiOKZ1A
+
+sequelize3:
+  host: rm-2zefa4845bwys9fb9io.mysql.rds.aliyuncs.com
+  port: 3306
+  name: block
+  user: ethscan_read
+  password: OLyEwNnx75uWtGkI
+  sslmode: false
+
+influx:
+  host: "127.0.0.1"
+  port: 8086
+  name: "minerdash"
+  user: "admin"
+  password: "UadZOn2Hsy1Dyt07"
+
+idp:
+  port: 3000
+  host: "0.0.0.0"
+  client_id: "idp"
+  client_secret: "idp-secret"
+  callback: "https://id.hiveon.dev:3000/callback"
+  db:
+    host: "postgres"
+    port: "54320"
+    name: "idp_dev"
+    user: "idp"
+    sslmode: false
+    password: "8GWbz2JF4FMe1Q8X"
+
+portal:
+  port: 3001
+  host: "0.0.0.0"
+  callback: "https://hiveon.dev:8080"
+  client_id: "portal"
+  client_secret: "portal-secret"
+
+api:
+  port: 8090
+  host: "0.0.0.0"
+
+admin:
+  port: 3002
+  host: "0.0.0.0"
+  client_id: "admin"
+  client_secret: "admin-secret"    
+  callback: "https://admin.hiveon.dev:3002/callback"
+  certs:
+    key: "$HIVEON_POOL/config/certs/admin.local.key"
+    pem: "$HIVEON_POOL/config/certs/admin.local.pem"
+  db:
+    host: "postgres"
+    port: 5432
+    name: "oauth"
+    user: "postgres"
+    sslmode: false
+    password: "postgres"
+
+auth:
+  sign_key: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
+
+security:
+  publicURL:  "/api/miner"
+  securedURL: "/api/private"
+  useCasbin: false
+
+mail:
+  active: "true"
+  smtp: "smtp.gmail.com"
+  port: 465
+  user: "hiveonid"
+  password: "Hiveon!23"
+  from: "id@hiveon.net"
+
+redis:
+  host: "localhost"
+  port: 6379
+  db: 1
+  password: ""
+
+remember_for: 360000
+
+app:
+  config:
+    pool:
+      workerState: 20m
+      pgOneDay: "26 hour"
+      poolZoom: "25h"
+      hashrate:
+        hashrateCul: 4000000000
+        hashrateCulDivider: 1200
+ZOOM_CONFIG:
+  d:
+    time: "25h"
+    zoom: "20m"
+
+WORKER_STAT_CONFIG:
+  d:
+    time: "24h"
+    zoom: "5m"
+    workerOfflineMin: 1m
+
+pool:
+  workers_api: "http://hapi:8090/api/private/statistic/workers"
+  mapping_api: "http://hapi:8090/api/private/statistic/mapping"
+  idp_api: "http://idp:3000/api"
+

@@ -1,4 +1,4 @@
---CREATE DATABASE idp_dev;
+-- CREATE DATABASE idp_dev;
 USE idp_dev;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO idp;
 
@@ -17,4 +17,4 @@ CREATE TRIGGER last_change AFTER INSERT OR UPDATE OR DELETE ON casbin_rules FOR 
 
 -- create user and casbin rule
 INSERT INTO ab_users VALUES(999,now(),now(),null,'admin','admin@hiveon.net','$2a$10$lmWdGp8ZJsFz5wJ9X8fi7uZ95XTC6zcx/trmd/TBuR3znx6.egrVC',null,null,true);
-INSERT INTO casbin_rules VALUES(null, now(), now(), null, 'p','999', '/*', '*');
+INSERT INTO casbin_rules VALUES(null, now(), now(), null, 'p', '999', '/*', '*');
