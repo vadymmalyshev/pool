@@ -96,7 +96,8 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	go func() {
 		logrus.Infof("Hiveon Admin has started on https://%s", config.Admin.Server.Addr())
-		errs <- r.RunTLS(config.Admin.Server.Addr(), config.Admin.Server.CertFile, config.Admin.Server.KeyFile)
+		//errs <- r.RunTLS(config.Admin.Server.Addr(), config.Admin.Server.CertFile, config.Admin.Server.KeyFile)
+		errs <- r.Run(config.Admin.Server.Addr())
 	}()
 
 	go func() {

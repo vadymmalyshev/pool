@@ -1,16 +1,14 @@
 package config
 
 import (
-	"os"
-	"path"
-	"runtime"
-	"strings"
-
 	"git.tor.ph/hiveon/pool/internal/platform/api"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
+	"os"
+	"path"
+	"runtime"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -89,10 +87,10 @@ var (
 	WorkerState, PoolZoom, ZoomConfigTime, ZoomConfigZoom, WorkerConfigTime, WorkerConfigZoom string
 	HashrateCul, HashrateCulDivider                                                           string
 	PgOneDay                                                                                  string
-	MappingApi, WorkersAPI															          string
-	UseCasbin																			      bool
-	WorkerOfflineMin																		  int
-	DefaultPercentage                             										      float64
+	MappingApi, WorkersAPI                                                                    string
+	UseCasbin                                                                                 bool
+	WorkerOfflineMin                                                                          int
+	DefaultPercentage                                                                         float64
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
 
@@ -124,10 +122,8 @@ func init() {
 	}
 
 	Admin.Server = server.Config{
-		Host:     viper.GetString("admin.host"),
-		Port:     viper.GetInt("admin.port"),
-		CertFile: strings.Replace(viper.GetString("admin.certs.pem"), "$HIVEON_POOL", hiveonPoolDir, -1),
-		KeyFile:  strings.Replace(viper.GetString("admin.certs.key"), "$HIVEON_POOL", hiveonPoolDir, -1),
+		Host: viper.GetString("admin.host"),
+		Port: viper.GetInt("admin.port"),
 	}
 	if err := Admin.Server.Validate(); err != nil {
 		logrus.Panicf("Admin server configuration error: %s", err)
@@ -176,7 +172,7 @@ func init() {
 	Redis = database.Config{
 		Host: viper.GetString("redis.host"),
 		Port: viper.GetInt("redis.port"),
-		Name:   viper.GetString("redis.db"),
+		Name: viper.GetString("redis.db"),
 		Pass: viper.GetString("redis.password"),
 	}
 	if err := Redis.Validate(); err != nil {

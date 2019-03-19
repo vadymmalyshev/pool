@@ -7,10 +7,8 @@ import (
 
 // Config holds information necessary for running a server
 type Config struct {
-	Host     string
-	Port     int
-	CertFile string
-	KeyFile  string
+	Host string
+	Port int
 }
 
 // Validate checks that the configuration is valid
@@ -25,14 +23,6 @@ func (c Config) Validate() error {
 
 	if c.Port < 1025 || c.Port > 65535 {
 		return errors.New("port is wrong")
-	}
-
-	if c.CertFile == "" {
-		return errors.New(".pem cert file is required")
-	}
-
-	if c.KeyFile == "" {
-		return errors.New(".key cert file is required")
 	}
 
 	return nil
