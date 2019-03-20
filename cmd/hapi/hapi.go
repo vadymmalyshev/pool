@@ -22,7 +22,6 @@ func main() {
 
 	r := gin.Default()
 
-
 	incomeHandler := api.NewIncomeAPI()
 	ethAPI := api.NewEthAPI()
 	minerHandler := api.NewMinerAPI()
@@ -43,6 +42,8 @@ func main() {
 	r.GET("/api/eth/:walletID/workers/counts", minerHandler.GetCountHistory())
 	r.GET("/api/eth/:walletID/workers/list", minerHandler.GetMiner())
 	r.GET("/api/eth/:walletID/date/:date/earning", billingHandler.HandleGetWalletEarning())
+	r.POST("/api/eth/wallet/addNew", ethAPI.AddNewWallet())
+	r.DELETE("/api/eth/:walletID/wallet/delete", ethAPI.DeleteWallet())
 
 	r.GET("/api/private/statistic/worker/:workerID", minerHandler.GetWorkerStatistic())
 	r.GET("/api/private/statistic/wallet/:walletID", minerHandler.GetWalletStatistic())

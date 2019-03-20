@@ -1,11 +1,12 @@
 package wallets
 
 import (
+	"encoding/json"
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	. "git.tor.ph/hiveon/pool/internal/redis"
-	"encoding/json"
+	"git.tor.ph/hiveon/pool/models"
 	log "github.com/sirupsen/logrus"
 	"math"
 	"strconv"
@@ -22,6 +23,8 @@ type Config struct {
 type WalletServicer interface {
 	GetWalletInfo(walletId string) minerdash.WalletInfo
 	GetWalletWorkerInfo(walletId string, workerId string) minerdash.WorkerInfo
+	AddWallet(wal *models.Wallet) (*models.Wallet, error)
+	DeleteWallet(wId string) error
 }
 
 type walletService struct {
@@ -29,15 +32,20 @@ type walletService struct {
 	redisRepository     RedisRepositorer
 	incomeRepository    IncomeRepositorer
 	minerdashRepository minerdash.MinerdashRepositorer
+	walletRepository    WalletRepositorer
 }
 
 func NewWalletService() WalletServicer {
-	return &walletService{minerService: minerdash.NewMinerService(), redisRepository: NewRedisRepository(config.Red),
-		incomeRepository: NewIncomeRepository(config.Seq3), minerdashRepository: minerdash.NewMinerdashRepository(config.Influx)}
+	return &walletService{
+		minerService:        minerdash.NewMinerService(),
+		redisRepository:     NewRedisRepository(config.Red),
+		incomeRepository:    NewIncomeRepository(config.Seq3),
+		minerdashRepository: minerdash.NewMinerdashRepository(config.Influx),
+		walletRepository:    NewWalletRepository(config.GetDB())}
 }
 
 func (w *walletService) GetWalletInfo(walletId string) minerdash.WalletInfo {
-	miner := w.minerService.GetMiner(walletId,"")
+	miner := w.minerService.GetMiner(walletId, "")
 	hashRates := miner.Hashrate
 	balance := miner.Balance.Data.Balance
 	workers := miner.Workers.Data
@@ -106,10 +114,10 @@ func (w *walletService) getWorkersStatistic(walletId string) workerOnlineStatist
 		timeStamp := time.Unix(ts/msToSec, 0)
 		if timeStamp.After(time.Now().Add(-time.Duration(20) * time.Minute)) {
 			workersState[k] = true
-			online ++
+			online++
 		} else {
 			workersState[k] = false
-			offline ++
+			offline++
 		}
 	}
 	return workerOnlineStatistic{online, offline, workersState}
@@ -119,7 +127,7 @@ func (w *walletService) getWorkersStatistic(walletId string) workerOnlineStatist
 func (w *walletService) getShareStatistic(shares []minerdash.SharesDetail) shareStatistic {
 	var reportedHashrate24h, reportedHashrate float64
 	var validShares24h, invalidShares24h, staleShares24h float64 // all shares sum  24h
-	var Stale24hStake, Invalid24hStake float64 // percent of all shares 24h
+	var Stale24hStake, Invalid24hStake float64                   // percent of all shares 24h
 	var valid, invalid float64
 
 	size := float64(len(shares))
@@ -127,7 +135,7 @@ func (w *walletService) getShareStatistic(shares []minerdash.SharesDetail) share
 		reportedHashrate24h = reportedHashrate24h + shares[i].LocalHashrate
 		validShares24h += shares[i].ValidShares
 		invalidShares24h += shares[i].InvalidShares
-		staleShares24h +=  shares[i].StaleShares
+		staleShares24h += shares[i].StaleShares
 	}
 
 	if size > 0 {
@@ -137,8 +145,8 @@ func (w *walletService) getShareStatistic(shares []minerdash.SharesDetail) share
 		reportedHashrate24h = reportedHashrate24h / size
 		// stake
 		totalShares := validShares24h + invalidShares24h + staleShares24h
-		Stale24hStake = staleShares24h/totalShares
-		Invalid24hStake = invalidShares24h/totalShares
+		Stale24hStake = staleShares24h / totalShares
+		Invalid24hStake = invalidShares24h / totalShares
 	}
 	return shareStatistic{reportedHashrate, valid, invalid, reportedHashrate24h,
 		math.Round(validShares24h), math.Round(invalidShares24h), math.Round(staleShares24h),
@@ -180,6 +188,14 @@ func (w *walletService) makeNewWorkers(workers []minerdash.Worker, stat workerOn
 		res = append(res, workerNew)
 	}
 	return res
+}
+
+func (w *walletService) AddWallet(wal *models.Wallet) (*models.Wallet, error) {
+	return w.walletRepository.SaveWallet(wal)
+}
+
+func (w *walletService) DeleteWallet(wId string) error {
+	return w.walletRepository.DeleteWallet(wId)
 }
 
 /*
