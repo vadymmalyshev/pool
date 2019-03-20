@@ -2,7 +2,8 @@ package casbin
 
 import (
 	"github.com/casbin/casbin"
-	gormadapter "github.com/casbin/gorm-adapter"
+	"github.com/casbin/gorm-adapter"
+	"github.com/jinzhu/gorm"
 )
 
 const adminAccess = `
@@ -26,4 +27,16 @@ m = g(r.sub, p.sub) && r.obj == p.obj && (r.act == p.act || p.act == "*")
 func IsHaveAdminAccess(a gormadapter.Adapter, uid string) bool {
 	adminAccessEnforcer := casbin.NewEnforcer(a, casbin.NewModel(adminAccess))
 	return adminAccessEnforcer.Enforce(uid, "admin", "access")
+}
+
+// CasbinRule represents casbin_rule db model
+type CasbinRule struct {
+	gorm.Model
+	PType string `gorm:"type:varchar(100)" json:"p_type"`
+	V0    string `gorm:"type:varchar(100)" json:"v0"`
+	V1    string `gorm:"type:varchar(100)" json:"v1"`
+	V2    string `gorm:"type:varchar(100)" json:"v2"`
+	V3    string `gorm:"type:varchar(100)" json:"v3"`
+	V4    string `gorm:"type:varchar(100)" json:"v4"`
+	V5    string `gorm:"type:varchar(100)" json:"v5"`
 }

@@ -1,8 +1,8 @@
 package config
 
 import (
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
+	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -17,7 +17,7 @@ func initIDPDB() {
 		logrus.Panic("invalid database config: ", err.Error())
 	}
 
-	db, err = postgres.Connect(config)
+	idpDb, err = postgres.Connect(config)
 	if err != nil {
 		logrus.Panic("failed to initialize db: ", err.Error())
 	}
