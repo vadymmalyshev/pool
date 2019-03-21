@@ -93,3 +93,8 @@ func FormatWalletID(wallet string) string {
 	}
 	return s
 }
+
+func FormatWorkerName(name string) string {
+	splitted_string := strings.Split(name,"#id")
+	return splitted_string[0]
+}

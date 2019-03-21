@@ -204,8 +204,7 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 	workersMap := make(map[string]Worker)
 	for _, w := range workers.Series {
 		worker := Worker{}
-		worker.Rig = w.Tags["rig"]
-
+		worker.Rig = FormatWorkerName(w.Tags["rig"])
 		worker.Time = GetRowStringValue(w, 0, "time")
 		worker.ValidShares = GetRowFloatValue(w, 0, "validShares")
 		worker.InvalidShares = GetRowFloatValue(w, 0, "invalidShares")
@@ -216,8 +215,7 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 	workers1dMap := make(map[string]Worker)
 	for _, w := range workers1dHashrate.Series {
 		worker := Worker{}
-		worker.Rig = w.Tags["rig"]
-
+		worker.Rig = FormatWorkerName(w.Tags["rig"])
 		worker.Time = GetRowStringValue(w, 0, "time")
 		worker.ValidShares = GetRowFloatValue(w, 0, "validShares")
 		worker.InvalidShares = GetRowFloatValue(w, 0, "invalidShares")
@@ -240,7 +238,7 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 		}
 
 		worker := Worker{}
-		worker.Rig = k
+		worker.Rig = FormatWorkerName(k)
 		worker.Time = timeStamp.Format(time.RFC3339)
 		worker.ValidShares = workersMap[k].ValidShares
 		worker.StaleShares = workersMap[k].StaleShares
@@ -299,7 +297,7 @@ func (m *minerService) CalcWorkersStat(walletID string, workerID string) Workers
 	for _, v := range workers.Series {
 		for in, _ := range v.Values {
 			worker := Worker{}
-			worker.Rig = v.Tags["rig"]
+			worker.Rig = FormatWorkerName(v.Tags["rig"])
 			worker.Time = GetRowStringValue(v, in, "time")
 			worker.ValidShares = GetRowFloatValue(v, in, "validShares")
 			worker.InvalidShares = GetRowFloatValue(v, in, "invalidShares")
