@@ -29,7 +29,6 @@ func main() {
 	billingHandler := api.NewBillingAPI()
 
 	casbinRuleHandler := api.NewCasbinRuleAPI()
-	casbinRuleHandler.MigrateRule()
 
 	r.GET("/api/pool/index", minerHandler.HandleGetIndex())
 	r.GET("/api/pool/incomeHistory", incomeHandler.HandleGetIncomeHistory())

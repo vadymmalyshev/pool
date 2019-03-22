@@ -21,9 +21,9 @@ type Config struct {
 }
 */
 type WalletServicer interface {
-	GetWalletInfo(walletId string) minerdash.WalletInfo
+	GetWalletInfo(walletId string) (minerdash.WalletInfo, error)
 	GetWalletWorkerInfo(walletId string, workerId string) minerdash.WorkerInfo
-	AddWallet(wal *models.Wallet) (*models.Wallet, error)
+	AddWallet(wal models.Wallet) (models.Wallet, error)
 	DeleteWallet(wId string) error
 }
 
@@ -44,8 +44,11 @@ func NewWalletService() WalletServicer {
 		walletRepository:    NewWalletRepository(config.GetDB())}
 }
 
-func (w *walletService) GetWalletInfo(walletId string) minerdash.WalletInfo {
-	miner := w.minerService.GetMiner(walletId, "")
+func (w *walletService) GetWalletInfo(walletId string) (minerdash.WalletInfo, error) {
+	miner, err := w.minerService.GetMiner(walletId, "")
+	if err != nil {
+		return minerdash.WalletInfo{}, err
+	}
 	hashRates := miner.Hashrate
 	balance := miner.Balance.Data.Balance
 	workers := miner.Workers.Data
@@ -54,14 +57,25 @@ func (w *walletService) GetWalletInfo(walletId string) minerdash.WalletInfo {
 	shares := w.minerService.GetShares(walletId, "").Data
 	shareStat := w.getShareStatistic(shares)
 
-	payouts := w.minerService.GetBill(walletId).Data
+	bill, err := w.minerService.GetBill(walletId)
+	if err != nil {
+		return minerdash.WalletInfo{}, err
+	}
+	payouts := bill.Data
 	workerStat := w.getWorkersStatistic(walletId)
 	newWorkers := w.makeNewWorkers(workers, workerStat)
 
-	futureIncomeData := w.minerService.GetFutureIncome().Data
+	futureInc, err := w.minerService.GetFutureIncome()
+	if err != nil {
+		return minerdash.WalletInfo{}, err
+	}
+	futureIncomeData := futureInc.Data
 	income1d := float64(futureIncomeData.Income1d)
 	usd := futureIncomeData.USD
-	income7d := w.incomeRepository.GetIncome7d()
+	income7d, err := w.incomeRepository.GetIncome7d()
+	if err != nil {
+		return minerdash.WalletInfo{}, err
+	}
 	expectedIncome := w.getExpectedIncome(workers, income1d, income7d, usd)
 
 	walletTotal := minerdash.WalletTotal{Hashrate: hashRates.Data.Hashrate, MeanHashrate: hashRates.Data.MeanHashrate24H, ReportedHashrate: shareStat.reportedHashrate,
@@ -71,7 +85,7 @@ func (w *walletService) GetWalletInfo(walletId string) minerdash.WalletInfo {
 
 	walletInfo := minerdash.WalletInfo{Code: 200, Total: walletTotal, Shares: shares, Workers: newWorkers, History: history, Payouts: payouts}
 
-	return walletInfo
+	return walletInfo, nil
 }
 
 func (w *walletService) GetWalletWorkerInfo(walletId string, workerId string) minerdash.WorkerInfo {
@@ -190,7 +204,7 @@ func (w *walletService) makeNewWorkers(workers []minerdash.Worker, stat workerOn
 	return res
 }
 
-func (w *walletService) AddWallet(wal *models.Wallet) (*models.Wallet, error) {
+func (w *walletService) AddWallet(wal models.Wallet) (models.Wallet, error) {
 	return w.walletRepository.SaveWallet(wal)
 }
 

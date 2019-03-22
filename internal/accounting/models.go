@@ -11,3 +11,7 @@ type Payment struct {
 	firstPaid float64
 	paymentId float64
 }
+
+func (r RepoBillInfo) isEmpty() bool {
+	return r == RepoBillInfo{}
+}
