@@ -1,0 +1,76 @@
+version: '3.5'
+
+networks:
+  pool_pool-network-dev:
+    external: true
+#Templates
+x-pool_pool-network-dev:
+  &pool_pool-network-dev
+  networks:
+  - pool_pool-network-dev
+
+#Containers
+services:
+  hapi:
+#    restart: on-failure
+    <<: *pool_pool-network-dev
+    image: registry.tor.ph/hiveon/pool/hapi:${CI_PIPELINE_ID:-latest}
+    container_name: hapi
+    hostname: hapi
+    ports:
+      - "8090:8090"
+      - "8080:8080"
+    external_links:
+      - influx
+      - hadmin
+      - hasbin
+      - hbilling
+      - redis
+      - idp
+      - hydra
+      - proxy
+#      - hconsumer
+    env_file:
+      - ./devops/pool.dev.env
+
+  hadmin:
+#    restart: on-failure
+    <<: *pool_pool-network-dev
+    image: registry.tor.ph/hiveon/pool/hadmin:${CI_PIPELINE_ID:-latest}
+    container_name: hadmin
+    hostname: hadmin
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./devops/pool.dev.env
+
+  hasbin:
+#    restart: on-failure
+    <<: *pool_pool-network-dev
+    image: registry.tor.ph/hiveon/pool/hasbin:${CI_PIPELINE_ID:-latest}
+    container_name: hasbin
+    hostname: hasbin
+    env_file:
+      - devops/pool.dev.env
+
+  hbilling:
+#    restart: on-failure
+    <<: *pool_pool-network-dev
+    image: registry.tor.ph/hiveon/pool/hbilling:${CI_PIPELINE_ID:-latest}
+    container_name: hbilling
+    hostname: hbilling
+    env_file:
+      - ./devops/pool.dev.env
+
+  hconsumer:
+#    restart: on-failure
+    <<: *pool_pool-network-dev
+    container_name: hconsumer
+    hostname: hconsumer
+    image: registry.tor.ph/hiveon/consumer:${CI_PIPELINE_ID:-latest}
+    external_links:
+      - ${IDP_DB_HOST:-postgres}
+      - influx
+      - redis
+    env_file:
+      - ./devops/pool.dev.env

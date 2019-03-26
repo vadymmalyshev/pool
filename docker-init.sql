@@ -1,5 +1,4 @@
---CREATE DATABASE idp_dev;
-USE idp_dev;
+CREATE DATABASE idp_dev;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO idp;
 
 

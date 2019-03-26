@@ -1,7 +1,7 @@
 hydra:
   admin: "http://localhost:4445"
   api: "http://localhost:4444"  
-  docker: idp_hydra
+  docker: hydra
 
 sequelize2:
   host: hiveos-eth-prod.cyzben5dhs1h.eu-central-1.rds.amazonaws.com
@@ -20,9 +20,9 @@ sequelize3:
   sslmode: false
 
 influx:
-  host: "127.0.0.1"
+  host: "influx"
   port: 8086
-  name: "minerdash"
+  name: "hiveon-pool_dev"
   user: "admin"
   password: "UadZOn2Hsy1Dyt07"
 
@@ -34,7 +34,7 @@ idp:
   callback: "https://id.hiveon.dev:3000/callback"
   db:
     host: "postgres"
-    port: "54320"
+    port: "5432"
     name: "idp_dev"
     user: "idp"
     sslmode: false
@@ -57,16 +57,13 @@ admin:
   client_id: "admin"
   client_secret: "admin-secret"    
   callback: "https://admin.hiveon.dev:3002/callback"
-  certs:
-    key: "$HIVEON_POOL/config/certs/admin.local.key"
-    pem: "$HIVEON_POOL/config/certs/admin.local.pem"
   db:
     host: "postgres"
     port: 5432
     name: "oauth"
-    user: "postgres"
+    user: "idp"
     sslmode: false
-    password: "postgres"
+    password: "8GWbz2JF4FMe1Q8X"
 
 auth:
   sign_key: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
@@ -85,7 +82,7 @@ mail:
   from: "id@hiveon.net"
 
 redis:
-  host: "localhost"
+  host: "redis"
   port: 6379
   db: 1
   password: ""

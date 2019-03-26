@@ -1,0 +1,83 @@
+version: '3.5'
+
+#Networking (docker networks)
+networks:
+  pool-network-dev:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.100.100.0/24
+  default: 
+    name: pool-network-dev
+
+#Volumes
+volumes:
+  redis_data:
+  postgres_data:
+  influx_data:
+  portainer_data:
+
+#Templates
+x-pool-network-dev:
+  &pool-network-dev
+  networks:
+  - pool-network-dev
+
+#Containers
+services:
+
+  postgres:
+#    restart: unless-stopped
+    build: './devops/postgres'
+    <<: *pool-network-dev
+    image: 'postgres:11'
+    container_name: postgres
+    hostname: postgres
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - ./devops/postgres:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./devops/pool.dev.env
+
+  redis:
+#    restart: on-failure
+    <<: *pool-network-dev
+    image: redis:4.0.5-alpine
+    container_name: redis
+    hostname: redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    entrypoint: redis-server --appendonly yes
+    environment:
+      TZ: "Europe/Kiev"
+      LANG: "C.UTF-8"
+  
+  influx:
+    restart: on-failure
+    <<: *pool-network-dev
+    image: influxdb:1.5-alpine
+    container_name: influx
+    hostname: influx
+    ports:
+      - "127.0.0.1:8086:8086"
+    volumes:
+      - influx_data:/var/lib/influxdb
+    env_file:
+      - ./devops/pool.dev.env
+
+  portainer:
+    <<: *pool-network-dev
+    image: portainer/portainer
+    container_name: portainer
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
