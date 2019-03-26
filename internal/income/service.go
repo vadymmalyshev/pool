@@ -9,8 +9,8 @@ import (
 )
 
 type IncomeServicer interface {
-	GetBlockCount() BlockCount
-	GetIncomeHistory() IncomeHistory
+	GetBlockCount() (BlockCount, error)
+	GetIncomeHistory() (IncomeHistory, error)
 }
 
 type incomeService struct {
@@ -26,15 +26,25 @@ func NewBlockServiceWithRepo(repo AccointingRepositorer) IncomeServicer {
 	return &incomeService{accountingRepository: repo}
 }
 
-func (b *incomeService) GetBlockCount() BlockCount {
+func (b *incomeService) GetBlockCount() (BlockCount, error) {
+	var err error
 	blockData := BlockCount{Code: 200}
-	blockData.Data.Uncles = b.accountingRepository.GetUncleBlocks24h()
-	blockData.Data.Blocks = b.accountingRepository.GetNormalBlocks24h()
-	return blockData
+	blockData.Data.Uncles, err = b.accountingRepository.GetUncleBlocks24h()
+	if err != nil {
+		return BlockCount{}, err
+	}
+	blockData.Data.Blocks, err = b.accountingRepository.GetNormalBlocks24h()
+	if err != nil {
+		return BlockCount{}, err
+	}
+	return blockData, nil
 }
 
-func (b *incomeService) GetIncomeHistory() IncomeHistory {
-	rows := b.incomeRepository.GetIncomeHistory()
+func (b *incomeService) GetIncomeHistory() (IncomeHistory, error) {
+	rows, err := b.incomeRepository.GetIncomeHistory()
+	if err != nil {
+		return IncomeHistory{}, err
+	}
 	var incomeSlice []Income
 
 	for rows.Next() {
@@ -50,5 +60,5 @@ func (b *incomeService) GetIncomeHistory() IncomeHistory {
 
 	incomeHistory := IncomeHistory{Code: 200}
 	incomeHistory.Data = incomeSlice
-	return incomeHistory
+	return incomeHistory, nil
 }

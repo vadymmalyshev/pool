@@ -1,10 +1,10 @@
 package api
 
 import (
+	"git.tor.ph/hiveon/pool/api/apierrors"
 	. "git.tor.ph/hiveon/pool/internal/wallets"
 	"git.tor.ph/hiveon/pool/models"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type EthAPI struct {
@@ -25,7 +25,11 @@ func NewEthAPI() *EthAPI {
 func (api *EthAPI) GetWalletFullData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(walletParam)
-		c.JSON(200, api.service.GetWalletInfo(walletID))
+		wallInfo, err := api.service.GetWalletInfo(walletID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, wallInfo)
 	}
 }
 
@@ -43,14 +47,12 @@ func (api *EthAPI) AddNewWallet() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var inputWallet models.Wallet
 		err := c.BindJSON(&inputWallet)
-		if err != nil {
-			logrus.Error(err)
-			c.AbortWithStatusJSON(400, "Invalid JSON format")
+		if apierrors.HandleError(err) {
+			c.AbortWithStatusJSON(400, apierrors.NewApiErr(400, "Invalid JSON format"))
 			return
 		}
-		w, err := api.service.AddWallet(&inputWallet)
-		if err != nil {
-			c.AbortWithStatusJSON(400, "Api has error")
+		w, err := api.service.AddWallet(inputWallet)
+		if apierrors.AbortWithApiError(c, err) {
 			return
 		}
 		c.JSON(200, w)
@@ -61,8 +63,8 @@ func (api *EthAPI) AddNewWallet() gin.HandlerFunc {
 func (api *EthAPI) DeleteWallet() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(walletParam)
-		if err := api.service.DeleteWallet(walletID); err != nil {
-			c.AbortWithStatusJSON(400, "Api has error")
+		err := api.service.DeleteWallet(walletID)
+		if apierrors.AbortWithApiError(c, err) {
 			return
 		}
 		c.Status(201)

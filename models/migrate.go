@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"git.tor.ph/hiveon/pool/internal/casbin"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -16,6 +17,7 @@ func Migrate(db *gorm.DB) error {
 		&Worker{},
 		&BillingWorkerStatistic{},
 		&BillingWorkerMoney{},
+		&casbin.CasbinRule{},
 	}
 
 	var tableNames string

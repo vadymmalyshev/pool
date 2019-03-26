@@ -3,12 +3,10 @@ package income
 import (
 	"database/sql"
 	"fmt"
-
+	"git.tor.ph/hiveon/pool/api/apierrors"
 	// init mysql driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -19,10 +17,10 @@ const (
 
 // Repositorer represents common interface get miner profitability prediction and history
 type IncomeRepositorer interface {
-	GetIncome24h() (result float64)
-	GetIncome7d() (result float64)
-	GetIncomeResult() (result float64)
-	GetIncomeHistory() *sql.Rows
+	GetIncome24h() (result float64, err error)
+	GetIncome7d() (result float64, err error)
+	GetIncomeResult() (result float64, err error)
+	GetIncomeHistory() (*sql.Rows, error)
 }
 
 // Repository have methods to get miner income history and prediction
@@ -36,47 +34,56 @@ func NewIncomeRepository(db *gorm.DB) *IncomeRepository {
 }
 
 // GetIncome24h returns miner income for 24h
-func (m *IncomeRepository) GetIncome24h() (result float64) {
+func (m *IncomeRepository) GetIncome24h() (result float64, err error) {
 	sql :=
 		fmt.Sprintf(`SELECT avg(expected_earning) * %s as income24h
 		FROM expected_earning_result 
 		WHERE end_time >= (UNIX_TIMESTAMP() -%d)`, wtfParam, secsInDay)
 
-	m.client.Raw(sql).Row().Scan(&result)
-	return result
+	if err := m.client.Raw(sql).Row().Scan(&result); apierrors.HandleError(err) {
+		return 0, err
+	}
+
+	return result, nil
 }
 
 // GetIncome7d returns miner income for 7d
-func (m *IncomeRepository) GetIncome7d() (result float64) {
+func (m *IncomeRepository) GetIncome7d() (result float64, err error) {
 	sql :=
 		fmt.Sprintf(`SELECT avg(expected_earning) * %s as income24h
 		FROM expected_earning_result 
 		WHERE end_time >= (UNIX_TIMESTAMP() -%d)`, wtfParam, secsInWeek)
 
-	m.client.Raw(sql).Row().Scan(&result)
-	return result
+	if err := m.client.Raw(sql).Row().Scan(&result); apierrors.HandleError(err) {
+		return 0, err
+	}
+
+	return result, nil
 }
 
-func (m *IncomeRepository) GetIncomeResult() (result float64) {
+func (m *IncomeRepository) GetIncomeResult() (result float64, err error) {
 	sql :=
 		fmt.Sprintf(`SELECT expected_earning * %s as income 
 		FROM expected_earning_result 
 		WHERE end_time >= UNIX_TIMESTAMP() limit 1`, wtfParam)
 
-	m.client.Raw(sql).Row().Scan(&result)
-	return result
+	if err := m.client.Raw(sql).Row().Scan(&result); apierrors.HandleError(err) {
+		return 0, err
+	}
+
+	return result, nil
 }
 
-func (m *IncomeRepository) GetIncomeHistory() *sql.Rows {
+func (m *IncomeRepository) GetIncomeHistory() (*sql.Rows, error) {
 	sql :=
 		fmt.Sprintf(`SELECT start_time,expected_earning as income 
 		FROM expected_earning_result 
 		WHERE start_time >= (UNIX_TIMESTAMP() - %d)`, secsInDay)
 
 	rows, err := m.client.Raw(sql).Rows()
-	if err != nil {
-		log.Error(err)
+	if apierrors.HandleError(err) {
+		return nil, err
 	}
 
-	return rows
+	return rows, nil
 }

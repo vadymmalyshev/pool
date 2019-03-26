@@ -1,6 +1,7 @@
 package api
 
 import (
+	"git.tor.ph/hiveon/pool/api/apierrors"
 	. "git.tor.ph/hiveon/pool/internal/minerdash"
 	"github.com/gin-gonic/gin"
 )
@@ -8,7 +9,7 @@ import (
 const (
 	paramWorker = "workerID"
 	paramWallet = "walletID"
-	paramDate = "date"
+	paramDate   = "date"
 )
 
 type MinerAPI struct {
@@ -19,23 +20,38 @@ func NewMinerAPI() *MinerAPI {
 	return &MinerAPI{minerService: NewMinerService()}
 }
 
+// Handle GET /api/pool/futureIncome
 func (h *MinerAPI) GetFutureIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, h.minerService.GetFutureIncome())
+		futureInc, err := h.minerService.GetFutureIncome()
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, futureInc)
 	}
 }
 
+// Handle GET /api/eth/:walletID/billInfo
 func (h *MinerAPI) GetBillInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
-		c.JSON(200, h.minerService.GetBillInfo(walletID))
+		billInfo, err := h.minerService.GetBillInfo(walletID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, billInfo)
 	}
 }
 
+// Handle GET /api/eth/:walletID/bill
 func (h *MinerAPI) GetBill() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
-		c.JSON(200, h.minerService.GetBill(walletID))
+		bill, err := h.minerService.GetBill(walletID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, bill)
 	}
 }
 
@@ -87,10 +103,15 @@ func (h *MinerAPI) GetWalletsWorkersMapping() gin.HandlerFunc {
 	}
 }
 
+// Handle GET /api/eth/:walletID/workers/list
 func (h *MinerAPI) GetMiner() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
-		c.JSON(200, h.minerService.GetMiner(walletID, ""))
+		miner, err := h.minerService.GetMiner(walletID, "")
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, miner)
 	}
 }
 

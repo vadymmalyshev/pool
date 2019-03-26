@@ -2,19 +2,20 @@ package minerdash
 
 import (
 	"encoding/json"
-	"reflect"
+	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/config"
 	. "git.tor.ph/hiveon/pool/internal/accounting"
 	. "git.tor.ph/hiveon/pool/internal/api/utils"
 	. "git.tor.ph/hiveon/pool/internal/income"
 	. "git.tor.ph/hiveon/pool/internal/redis"
 	. "github.com/influxdata/influxdb1-client/models"
+	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 	"math"
+	"reflect"
 	"sort"
 	"strconv"
 	"time"
-	"github.com/jinzhu/gorm"
-	log "github.com/sirupsen/logrus"
 )
 
 // Service provides method with calculations of miner's job history
@@ -23,11 +24,11 @@ type Service struct {
 }
 
 type MinerServicer interface {
-	GetFutureIncome() FutureIncome
-	GetBillInfo(walletID string) BillInfo
+	GetFutureIncome() (FutureIncome, error)
+	GetBillInfo(walletID string) (BillInfo, error)
 	GetShares(walletID string, workerID string) Shares
-	GetBill(walletID string) Bill
-	GetMiner(walletID string, workerID string) MinerWorker
+	GetBill(walletID string) (Bill, error)
+	GetMiner(walletID string, workerID string) (MinerWorker, error)
 	GetHashrate(walletID string, workerID string) Hashrate
 	GetCountHistory(walletID string) WorkerCount
 	CalcWorkersStat(walletID string, workerID string) WorkersStatistic
@@ -37,10 +38,10 @@ type MinerServicer interface {
 }
 
 type minerService struct {
-	incomeRepository        IncomeRepositorer
-	minerdashRepository     MinerdashRepositorer
-	accountingRepository    AccointingRepositorer
-	redisRepository         RedisRepositorer
+	incomeRepository     IncomeRepositorer
+	minerdashRepository  MinerdashRepositorer
+	accountingRepository AccointingRepositorer
+	redisRepository      RedisRepositorer
 }
 
 func NewMinerService() MinerServicer {
@@ -53,28 +54,39 @@ func NewMinerServiceWithRepo(incomeRepository IncomeRepositorer, minerdashReposi
 	return &minerService{incomeRepository: incomeRepository, minerdashRepository: minerdashRepository, accountingRepository: accountingRepository, redisRepository: redisRepository}
 }
 
-func (m *minerService) GetFutureIncome() FutureIncome {
+func (m *minerService) GetFutureIncome() (FutureIncome, error) {
 	incomeCurrency := m.minerdashRepository.GetETHHashrate()
-	income := int(m.incomeRepository.GetIncomeResult())
-	income1d := int(m.incomeRepository.GetIncome24h())
-
+	income, err := m.incomeRepository.GetIncomeResult()
+	if err != nil {
+		return FutureIncome{}, err
+	}
+	income1d, err := m.incomeRepository.GetIncome24h()
+	if err != nil {
+		return FutureIncome{}, err
+	}
 	futureIncome := FutureIncome{Code: 200}
 	futureIncome.Data.CNY = incomeCurrency.CNY
 	futureIncome.Data.BTC = incomeCurrency.BTC
 	futureIncome.Data.USD = incomeCurrency.USD
-	futureIncome.Data.Income = income
-	futureIncome.Data.Income1d = income1d
-	return futureIncome
+	futureIncome.Data.Income = int(income)
+	futureIncome.Data.Income1d = int(income1d)
+	return futureIncome, nil
 }
 
-func (m *minerService) GetBillInfo(walletId string) BillInfo {
-	bill := m.accountingRepository.GetBillInfo(walletId)
+func (m *minerService) GetBillInfo(walletId string) (BillInfo, error) {
+	bill, err := m.accountingRepository.GetBillInfo(walletId)
+	if err != nil {
+		return BillInfo{}, err
+	}
 	return BillInfo{Balance: bill.Balance, FirstTime: FormatTimeToRFC3339(bill.FirstTime),
-		FirstPaid: bill.FirstPaid, TotalPaid: bill.TotalPaid}
+		FirstPaid: bill.FirstPaid, TotalPaid: bill.TotalPaid}, nil
 }
 
-func (m *minerService) GetBill(walletId string) Bill {
-	rows := m.accountingRepository.GetBill(walletId)
+func (m *minerService) GetBill(walletId string) (Bill, error) {
+	rows, err := m.accountingRepository.GetBill(walletId)
+	if err != nil {
+		return Bill{}, err
+	}
 
 	var bills []BillDetail
 
@@ -90,8 +102,11 @@ func (m *minerService) GetBill(walletId string) Bill {
 		r.Time = FormatTimeToRFC3339(r.Time)
 		bills = append(bills, r)
 	}
+	if bills == nil {
+		return Bill{}, apierrors.NewApiErr(400, "Bad Request")
+	}
 
-	return Bill{Code: 200, Data: bills}
+	return Bill{Code: 200, Data: bills}, nil
 }
 
 func (m *minerService) GetShares(walletID string, workerID string) Shares {
@@ -124,21 +139,29 @@ func (m *minerService) GetShares(walletID string, workerID string) Shares {
 	return Shares{Code: 200, Data: sharesDetails}
 }
 
-func (m *minerService) GetMiner(walletID string, workerID string) MinerWorker {
+func (m *minerService) GetMiner(walletID string, workerID string) (MinerWorker, error) {
 
 	minerWorker := MinerWorker{}
-	minerWorker.Balance = m.getBalance(walletID)
+	balance, err := m.getBalance(walletID)
+	if err != nil {
+		return MinerWorker{}, err
+	}
+	minerWorker.Balance = balance
 	minerWorker.Hashrate = m.GetHashrate(walletID, workerID)
 	minerWorker.Workers = m.getLatestWorker(walletID)
 	minerWorker.WorkerCounts = m.GetCountHistory(walletID)
-	return minerWorker
+	return minerWorker, nil
 }
 
-func (m *minerService) getBalance(walletID string) Balance {
+func (m *minerService) getBalance(walletID string) (Balance, error) {
 
 	balance := Balance{Code: 200}
-	balance.Data.Balance = m.accountingRepository.GetBalance(walletID)
-	return balance
+	value, err := m.accountingRepository.GetBalance(walletID)
+	if err != nil {
+		return Balance{}, err
+	}
+	balance.Data.Balance = value
+	return balance, nil
 }
 
 func (m *minerService) GetHashrate(walletID string, workerID string) Hashrate {
@@ -170,7 +193,9 @@ func (m *minerService) GetIndex() PoolData {
 
 		if poolData.Data.Hashrate.ValidShares > 0 {
 			val := math.Round(poolData.Data.Hashrate.ValidShares * hashrateConfig)
-			if math.IsNaN(val) {val = 0}
+			if math.IsNaN(val) {
+				val = 0
+			}
 			poolData.Data.Hashrate.Hashrate = val
 		}
 	}
@@ -179,7 +204,9 @@ func (m *minerService) GetIndex() PoolData {
 		poolData.Data.Miner.Time = miner.Values[0][0].(string)
 		minerCount, _ := miner.Values[0][1].(json.Number).Float64()
 		val := math.Round(minerCount/1000*10) / 10
-		if math.IsNaN(val) {val = 0}
+		if math.IsNaN(val) {
+			val = 0
+		}
 		poolData.Data.Miner.Count = val
 	}
 
@@ -187,7 +214,9 @@ func (m *minerService) GetIndex() PoolData {
 		poolData.Data.Worker.Time = worker.Values[0][0].(string)
 		workerCount, _ := worker.Values[0][1].(json.Number).Float64()
 		val := math.Round(workerCount/1000*10) / 10
-		if math.IsNaN(val) {val = 0}
+		if math.IsNaN(val) {
+			val = 0
+		}
 		poolData.Data.Worker.Count = val
 	}
 
@@ -204,8 +233,7 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 	workersMap := make(map[string]Worker)
 	for _, w := range workers.Series {
 		worker := Worker{}
-		worker.Rig = w.Tags["rig"]
-
+		worker.Rig = FormatWorkerName(w.Tags["rig"])
 		worker.Time = GetRowStringValue(w, 0, "time")
 		worker.ValidShares = GetRowFloatValue(w, 0, "validShares")
 		worker.InvalidShares = GetRowFloatValue(w, 0, "invalidShares")
@@ -216,8 +244,7 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 	workers1dMap := make(map[string]Worker)
 	for _, w := range workers1dHashrate.Series {
 		worker := Worker{}
-		worker.Rig = w.Tags["rig"]
-
+		worker.Rig = FormatWorkerName(w.Tags["rig"])
 		worker.Time = GetRowStringValue(w, 0, "time")
 		worker.ValidShares = GetRowFloatValue(w, 0, "validShares")
 		worker.InvalidShares = GetRowFloatValue(w, 0, "invalidShares")
@@ -240,7 +267,7 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 		}
 
 		worker := Worker{}
-		worker.Rig = k
+		worker.Rig = FormatWorkerName(k)
 		worker.Time = timeStamp.Format(time.RFC3339)
 		worker.ValidShares = workersMap[k].ValidShares
 		worker.StaleShares = workersMap[k].StaleShares
@@ -299,7 +326,7 @@ func (m *minerService) CalcWorkersStat(walletID string, workerID string) Workers
 	for _, v := range workers.Series {
 		for in, _ := range v.Values {
 			worker := Worker{}
-			worker.Rig = v.Tags["rig"]
+			worker.Rig = FormatWorkerName(v.Tags["rig"])
 			worker.Time = GetRowStringValue(v, in, "time")
 			worker.ValidShares = GetRowFloatValue(v, in, "validShares")
 			worker.InvalidShares = GetRowFloatValue(v, in, "invalidShares")
