@@ -38,7 +38,11 @@ func (api *EthAPI) GetWalletsWorkerData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(walletParam)
 		workerID := c.Param(workerParam)
-		c.JSON(200, api.service.GetWalletWorkerInfo(walletID, workerID))
+		info, err := api.service.GetWalletWorkerInfo(walletID, workerID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, info)
 	}
 }
 
