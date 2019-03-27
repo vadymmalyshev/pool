@@ -5,7 +5,11 @@ Run syncronizer
 ```go run ./cmd/hasbin/hasbin.go
 ```
 
-Run Admin
+Run Admin:
+
+fill dbs:
+```go run ./cmd/hasbin/hadmin.go migrate```
+run admin:
 ```go run ./cmd/hasbin/hadmin.go```
 
 TODO: Add an admin access to the user which found by email

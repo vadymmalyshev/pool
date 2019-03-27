@@ -6,8 +6,10 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"sync"
 )
 
+var dbIdpOnce sync.Once
 var idpDb *gorm.DB
 
 func initIDPDB() {
@@ -25,8 +27,7 @@ func initIDPDB() {
 
 // GetIDPDB returns an initialized IDP DB instance.
 func GetIDPDB() *gorm.DB {
-	dbOnce.Do(initIDPDB)
-
+	dbIdpOnce.Do(initIDPDB)
 	return idpDb
 }
 

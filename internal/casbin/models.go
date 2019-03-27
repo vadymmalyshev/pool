@@ -1,6 +1,8 @@
 package casbin
 
 import (
+	"fmt"
+	"git.tor.ph/hiveon/pool/config"
 	"github.com/casbin/casbin"
 	"github.com/casbin/gorm-adapter"
 	"github.com/jinzhu/gorm"
@@ -39,4 +41,17 @@ type CasbinRule struct {
 	V3    string `gorm:"type:varchar(100)" json:"v3"`
 	V4    string `gorm:"type:varchar(100)" json:"v4"`
 	V5    string `gorm:"type:varchar(100)" json:"v5"`
+}
+
+const (
+	tableNameCasbinRule = "casbin_rules"
+)
+
+// TableName represent CasbinRule table name. Used by Gorm
+func (CasbinRule) TableName() string {
+	return tableNameCasbinRule
+}
+
+func (CasbinRule) AdminPath() string {
+	return fmt.Sprintf("%s/%s", config.AdminPrefix, tableNameCasbinRule)
 }

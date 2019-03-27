@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"git.tor.ph/hiveon/pool/internal/casbin"
 	"regexp"
 
 	"git.tor.ph/hiveon/pool/models"
@@ -10,7 +11,7 @@ import (
 )
 
 // SwitchDatabasesMiddleware used to switch databases on the fly
-func SwitchDatabasesMiddleware(db, seq2 *gorm.DB) *admin.Middleware {
+func SwitchDatabasesMiddleware(db, seq2, idp *gorm.DB) *admin.Middleware {
 	return &admin.Middleware{
 		Name: "switch_db",
 		Handler: func(context *admin.Context, middleware *admin.Middleware) {
@@ -21,6 +22,9 @@ func SwitchDatabasesMiddleware(db, seq2 *gorm.DB) *admin.Middleware {
 			}
 			if regexp.MustCompile(models.Blacklist{}.AdminPath()).MatchString(context.Request.URL.Path) {
 				context.SetDB(seq2)
+			}
+			if regexp.MustCompile(casbin.CasbinRule{}.AdminPath()).MatchString(context.Request.URL.Path) {
+				context.SetDB(idp)
 			}
 			middleware.Next(context)
 		},
