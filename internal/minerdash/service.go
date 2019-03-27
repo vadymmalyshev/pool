@@ -26,15 +26,15 @@ type Service struct {
 type MinerServicer interface {
 	GetFutureIncome() (FutureIncome, error)
 	GetBillInfo(walletID string) (BillInfo, error)
-	GetShares(walletID string, workerID string) Shares
+	GetShares(walletID string, workerID string) (Shares, error)
 	GetBill(walletID string) (Bill, error)
 	GetMiner(walletID string, workerID string) (MinerWorker, error)
-	GetHashrate(walletID string, workerID string) Hashrate
-	GetCountHistory(walletID string) WorkerCount
-	CalcWorkersStat(walletID string, workerID string) WorkersStatistic
-	GetWalletWorkerMapping() WalletWorkerMappingStatistic
+	GetHashrate(walletID string, workerID string) (Hashrate, error)
+	GetCountHistory(walletID string) (WorkerCount, error)
+	CalcWorkersStat(walletID string, workerID string) (WorkersStatistic, error)
+	GetWalletWorkerMapping() (WalletWorkerMappingStatistic, error)
 	CalcHashrate(count float64) float64
-	GetIndex() PoolData
+	GetIndex() (PoolData, error)
 }
 
 type minerService struct {
@@ -55,7 +55,10 @@ func NewMinerServiceWithRepo(incomeRepository IncomeRepositorer, minerdashReposi
 }
 
 func (m *minerService) GetFutureIncome() (FutureIncome, error) {
-	incomeCurrency := m.minerdashRepository.GetETHHashrate()
+	incomeCurrency, err := m.minerdashRepository.GetETHHashrate()
+	if err != nil {
+		return FutureIncome{}, err
+	}
 	income, err := m.incomeRepository.GetIncomeResult()
 	if err != nil {
 		return FutureIncome{}, err
@@ -109,10 +112,17 @@ func (m *minerService) GetBill(walletId string) (Bill, error) {
 	return Bill{Code: 200, Data: bills}, nil
 }
 
-func (m *minerService) GetShares(walletID string, workerID string) Shares {
-	rows := m.minerdashRepository.GetShares(walletID, workerID)
+func (m *minerService) GetShares(walletID string, workerID string) (Shares, error) {
+	rows, err := m.minerdashRepository.GetShares(walletID, workerID)
+	if err != nil {
+		return Shares{}, err
+	}
 
 	sharesDetails := make([]SharesDetail, len(rows.Values))
+
+	if len(rows.Values) == 0 {
+		return Shares{}, apierrors.NewApiErr(400, "Bad request")
+	}
 
 	for i, row := range rows.Values {
 		sharesDetails[i].Time = row[0].(string)
@@ -125,7 +135,10 @@ func (m *minerService) GetShares(walletID string, workerID string) Shares {
 	removeExtraElements(&sharesDetails)
 	calcMeanHashrate(&sharesDetails)
 
-	rows = m.minerdashRepository.GetLocalHashrateResult(walletID, "")
+	rows, err = m.minerdashRepository.GetLocalHashrateResult(walletID, "")
+	if err != nil {
+		return Shares{}, err
+	}
 
 	timeMap := make(map[string]float64, len(rows.Values))
 	for _, row := range rows.Values {
@@ -136,7 +149,7 @@ func (m *minerService) GetShares(walletID string, workerID string) Shares {
 		sharesDetails[i].LocalHashrate = timeMap[sharesDetails[i].Time]
 	}
 
-	return Shares{Code: 200, Data: sharesDetails}
+	return Shares{Code: 200, Data: sharesDetails}, nil
 }
 
 func (m *minerService) GetMiner(walletID string, workerID string) (MinerWorker, error) {
@@ -147,9 +160,18 @@ func (m *minerService) GetMiner(walletID string, workerID string) (MinerWorker, 
 		return MinerWorker{}, err
 	}
 	minerWorker.Balance = balance
-	minerWorker.Hashrate = m.GetHashrate(walletID, workerID)
-	minerWorker.Workers = m.getLatestWorker(walletID)
-	minerWorker.WorkerCounts = m.GetCountHistory(walletID)
+	minerWorker.Hashrate, err = m.GetHashrate(walletID, workerID)
+	if err != nil {
+		return MinerWorker{}, err
+	}
+	minerWorker.Workers, err = m.getLatestWorker(walletID)
+	if err != nil {
+		return MinerWorker{}, err
+	}
+	minerWorker.WorkerCounts, err = m.GetCountHistory(walletID)
+	if err != nil {
+		return MinerWorker{}, err
+	}
 	return minerWorker, nil
 }
 
@@ -164,23 +186,35 @@ func (m *minerService) getBalance(walletID string) (Balance, error) {
 	return balance, nil
 }
 
-func (m *minerService) GetHashrate(walletID string, workerID string) Hashrate {
+func (m *minerService) GetHashrate(walletID string, workerID string) (Hashrate, error) {
 
-	hashrateRepo := m.minerdashRepository.GetHashrate(walletID, workerID)
+	hashrateRepo, err := m.minerdashRepository.GetHashrate(walletID, workerID)
+	if err != nil {
+		return Hashrate{}, err
+	}
 	hashrate := Hashrate{Code: 200}
 	hashrate.Data.Hashrate = m.CalcHashrate(hashrateRepo.Hashrate)
 	hashrate.Data.MeanHashrate24H = m.CalcHashrate(hashrateRepo.Hashrate24H)
-	return hashrate
+	return hashrate, nil
 }
 
-func (m *minerService) GetIndex() PoolData {
+func (m *minerService) GetIndex() (PoolData, error) {
 	hashrateCul, _ := strconv.ParseFloat(config.HashrateCul, 64)
 	hashrateCulDivider, _ := strconv.ParseFloat(config.HashrateCulDivider, 64)
 	hashrateConfig := hashrateCul / hashrateCulDivider
 
-	hashRate := m.minerdashRepository.GetPoolLatestShare()
-	miner := m.minerdashRepository.GetPoolMiner()
-	worker := m.minerdashRepository.GetPoolWorker()
+	hashRate, err := m.minerdashRepository.GetPoolLatestShare()
+	if err != nil {
+		return PoolData{}, err
+	}
+	miner, err := m.minerdashRepository.GetPoolMiner()
+	if err != nil {
+		return PoolData{}, err
+	}
+	worker, err := m.minerdashRepository.GetPoolWorker()
+	if err != nil {
+		return PoolData{}, err
+	}
 
 	poolData := PoolData{Code: 200}
 
@@ -220,15 +254,24 @@ func (m *minerService) GetIndex() PoolData {
 		poolData.Data.Worker.Count = val
 	}
 
-	return poolData
+	return poolData, nil
 }
 
 //worker.list
-func (m *minerService) getLatestWorker(walletID string) Workers {
+func (m *minerService) getLatestWorker(walletID string) (Workers, error) {
 	const msToSec = 1000000000
-	workers2 := m.redisRepository.GetLatestWorker(walletID)
-	workers := m.minerdashRepository.GetHashrate20m(walletID, "")
-	workers1dHashrate := m.minerdashRepository.GetAvgHashrate1d(walletID, "")
+	workers2, err := m.redisRepository.GetLatestWorker(walletID)
+	if err != nil {
+		return Workers{}, err
+	}
+	workers, err := m.minerdashRepository.GetHashrate20m(walletID, "")
+	if err != nil {
+		return Workers{}, err
+	}
+	workers1dHashrate, err := m.minerdashRepository.GetAvgHashrate1d(walletID, "")
+	if err != nil {
+		return Workers{}, err
+	}
 
 	workersMap := make(map[string]Worker)
 	for _, w := range workers.Series {
@@ -278,11 +321,14 @@ func (m *minerService) getLatestWorker(walletID string) Workers {
 		worker.Hashrate = m.CalcHashrate(worker.ValidShares)
 		workerResult = append(workerResult, worker)
 	}
-	return Workers{Code: 200, Data: workerResult}
+	return Workers{Code: 200, Data: workerResult}, nil
 }
 
-func (m *minerService) GetCountHistory(walletID string) WorkerCount {
-	row := m.minerdashRepository.GetCountHistory(walletID)
+func (m *minerService) GetCountHistory(walletID string) (WorkerCount, error) {
+	row, err := m.minerdashRepository.GetCountHistory(walletID)
+	if err != nil {
+		return WorkerCount{}, err
+	}
 	var timeCount []TimeCount
 
 	if row.Values != nil {
@@ -304,22 +350,28 @@ func (m *minerService) GetCountHistory(walletID string) WorkerCount {
 	}
 	workerCount := WorkerCount{Code: 200}
 	workerCount.Data = timeCount
-	return workerCount
+	return workerCount, nil
 }
-func (m *minerService) GetWalletWorkerMapping() WalletWorkerMappingStatistic {
+func (m *minerService) GetWalletWorkerMapping() (WalletWorkerMappingStatistic, error) {
 	var walletWorkerMappingList []WalletWorkerMapping
-	mapping := m.minerdashRepository.GetWorkersWalletsMapping24hStatistic()
+	mapping, err := m.minerdashRepository.GetWorkersWalletsMapping24hStatistic()
+	if err != nil {
+		return WalletWorkerMappingStatistic{}, err
+	}
 	for _, w := range mapping.Series {
 		workerWallet := WalletWorkerMapping{}
 		workerWallet.Wallet = w.Tags["wallet"]
 		workerWallet.Worker = w.Tags["rig"]
 		walletWorkerMappingList = append(walletWorkerMappingList, workerWallet)
 	}
-	return WalletWorkerMappingStatistic{200, walletWorkerMappingList}
+	return WalletWorkerMappingStatistic{200, walletWorkerMappingList}, nil
 }
 
-func (m *minerService) CalcWorkersStat(walletID string, workerID string) WorkersStatistic {
-	workers := m.minerdashRepository.GetWorkers24hStatistic(walletID, workerID)
+func (m *minerService) CalcWorkersStat(walletID string, workerID string) (WorkersStatistic, error) {
+	workers, err := m.minerdashRepository.GetWorkers24hStatistic(walletID, workerID)
+	if err != nil {
+		return WorkersStatistic{}, err
+	}
 	var workersList []Worker
 	var workerStatisticList []WorkerStatistic
 
@@ -361,7 +413,7 @@ func (m *minerService) CalcWorkersStat(walletID string, workerID string) Workers
 	}
 	createWorkerStatistic(currentWorker, validSharesSum, invalidSharesSum, staleSharesSum, percentage, &workerStatisticList) //last worker
 
-	return WorkersStatistic{Code: 200, Data: workerStatisticList}
+	return WorkersStatistic{Code: 200, Data: workerStatisticList}, nil
 }
 
 func createWorkerStatistic(v string, validSharesSum float64, invalidSharesSum float64, staleSharesSum float64,

@@ -2,31 +2,36 @@ package users
 
 import (
 	"git.tor.ph/hiveon/pool/config"
-	."git.tor.ph/hiveon/pool/models"
+	. "git.tor.ph/hiveon/pool/models"
 )
 
 type UserServicer interface {
-	GetUserWallet(userID uint) []Wallet
-	SaveUserWallet(userID uint, wallet string, coin string)
+	GetUserWallet(userID uint) ([]Wallet, error)
+	SaveUserWallet(userID uint, wallet string, coin string) (Wallet, error)
 }
 
 type userService struct {
 	userRepository UserRepositorer
 }
 
-func NewUserService() UserServicer{
-	return &userService{userRepository:NewUserRepository(config.Postgres)}
+func NewUserService() UserServicer {
+	return &userService{userRepository: NewUserRepository(config.Postgres)}
 }
 
-func (u *userService) GetUserWallet(userID uint) []Wallet {
+func (u *userService) GetUserWallet(userID uint) ([]Wallet, error) {
 	return u.userRepository.GetUserWallets(userID)
 }
 
-func (u *userService) SaveUserWallet(userID uint, wallet string, coinName string) {
-	coin, _ := u.userRepository.CreateCoinIfNotExists(coinName)
+func (u *userService) SaveUserWallet(userID uint, wallet string, coinName string) (Wallet, error) {
+	coin, err := u.userRepository.CreateCoinIfNotExists(coinName)
+	if err != nil {
+		return Wallet{}, err
+	}
 
-	w:= Wallet{Address:wallet, Coin:*coin}
-	u.userRepository.SaveUserWallet(w)
-	return
+	w := Wallet{Address: wallet, Coin: *coin}
+	w, err = u.userRepository.SaveUserWallet(w)
+	if err != nil {
+		return Wallet{}, err
+	}
+	return w, nil
 }
-

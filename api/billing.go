@@ -1,12 +1,13 @@
 package api
 
 import (
+	"git.tor.ph/hiveon/pool/api/apierrors"
 	. "git.tor.ph/hiveon/pool/internal/billing"
 	"github.com/gin-gonic/gin"
 )
 
 type BillingAPI struct {
-	billingRepository 	BillingRepositorer
+	billingRepository BillingRepositorer
 }
 
 func NewBillingAPI() BillingAPI {
@@ -17,8 +18,10 @@ func (h *BillingAPI) HandleGetWalletEarning() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
 		date := c.Param(paramDate)
-		c.JSON(200, h.billingRepository.GetWalletEarning(walletID, date))
+		wEarn, err := h.billingRepository.GetWalletEarning(walletID, date)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, wEarn)
 	}
 }
-
-
