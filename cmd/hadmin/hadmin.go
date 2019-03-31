@@ -10,6 +10,7 @@ import (
 	"git.tor.ph/hiveon/idp/models/users"
 	"git.tor.ph/hiveon/pool/config"
 	internalAdmin "git.tor.ph/hiveon/pool/internal/admin"
+	"git.tor.ph/hiveon/pool/internal/casbin"
 	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
 	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/models"
@@ -50,6 +51,18 @@ func doMigrate(cmd *cobra.Command, args []string) {
 	if err != nil {
 		logrus.Panicf("something went wrong: %s", err)
 	}
+
+	idpDB, err := postgres.Connect(config.IDPDB)
+
+	if err != nil {
+		logrus.Panicf("failed to init db: %s", err)
+	}
+
+	err = models.MigrateIDP(idpDB)
+
+	if err != nil {
+		logrus.Panicf("something went wrong: %s", err)
+	}
 }
 
 func addAdmin(cmd *cobra.Command, args []string) {
@@ -78,12 +91,13 @@ func runServer(cmd *cobra.Command, args []string) {
 	logrus.Info("hAdmin server launched")
 
 	admin := admin.New(&admin.AdminConfig{DB: idpdb})
-	admin.GetRouter().Use(internalAdmin.SwitchDatabasesMiddleware(db, seq2))
+	admin.GetRouter().Use(internalAdmin.SwitchDatabasesMiddleware(db, seq2, idpdb))
 
 	admin.AddResource(&models.Wallet{})
 	admin.AddResource(&models.Coin{})
 	admin.AddResource(&users.User{})
 	admin.AddResource(&models.Blacklist{})
+	admin.AddResource(&casbin.CasbinRule{})
 
 	mux := http.NewServeMux()
 	admin.MountTo("/admin", mux)

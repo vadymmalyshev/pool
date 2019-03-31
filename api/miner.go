@@ -59,47 +59,75 @@ func (h *MinerAPI) GetShares() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
 		workerID := c.Param(paramWorker)
-		c.JSON(200, h.minerService.GetShares(walletID, workerID))
+		shares, err := h.minerService.GetShares(walletID, workerID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, shares)
 	}
 }
 
 func (h *MinerAPI) GetHashrate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
-		c.JSON(200, h.minerService.GetHashrate(walletID, ""))
+		hashRate, err := h.minerService.GetHashrate(walletID, "")
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, hashRate)
 	}
 }
 
 func (h *MinerAPI) GetCountHistory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
-		c.JSON(200, h.minerService.GetCountHistory(walletID))
+		history, err := h.minerService.GetCountHistory(walletID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, history)
 	}
 }
 
 func (h *MinerAPI) GetWorkerStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		workerID := c.Param(paramWorker)
-		c.JSON(200, h.minerService.CalcWorkersStat("", workerID))
+		wStat, err := h.minerService.CalcWorkersStat("", workerID)
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, wStat)
 	}
 }
 
 func (h *MinerAPI) GetAllWorkersStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, h.minerService.CalcWorkersStat("", ""))
+		wStat, err := h.minerService.CalcWorkersStat("", "")
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, wStat)
 	}
 }
 
 func (h *MinerAPI) GetWalletStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		walletID := c.Param(paramWallet)
-		c.JSON(200, h.minerService.CalcWorkersStat(walletID, ""))
+		wStat, err := h.minerService.CalcWorkersStat(walletID, "")
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, wStat)
 	}
 }
 
 func (h *MinerAPI) GetWalletsWorkersMapping() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, h.minerService.GetWalletWorkerMapping())
+		wWorMap, err := h.minerService.GetWalletWorkerMapping()
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, wWorMap)
 	}
 }
 
@@ -117,6 +145,10 @@ func (h *MinerAPI) GetMiner() gin.HandlerFunc {
 
 func (h *MinerAPI) HandleGetIndex() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, h.minerService.GetIndex())
+		index, err := h.minerService.GetIndex()
+		if apierrors.AbortWithApiError(c, err) {
+			return
+		}
+		c.JSON(200, index)
 	}
 }

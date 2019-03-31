@@ -22,7 +22,7 @@ type Config struct {
 */
 type WalletServicer interface {
 	GetWalletInfo(walletId string) (minerdash.WalletInfo, error)
-	GetWalletWorkerInfo(walletId string, workerId string) minerdash.WorkerInfo
+	GetWalletWorkerInfo(walletId string, workerId string) (minerdash.WorkerInfo, error)
 	AddWallet(wal models.Wallet) (models.Wallet, error)
 	DeleteWallet(wId string) error
 }
@@ -54,7 +54,11 @@ func (w *walletService) GetWalletInfo(walletId string) (minerdash.WalletInfo, er
 	workers := miner.Workers.Data
 	history := miner.WorkerCounts.Data
 
-	shares := w.minerService.GetShares(walletId, "").Data
+	data, err := w.minerService.GetShares(walletId, "")
+	if err != nil {
+		return minerdash.WalletInfo{}, err
+	}
+	shares := data.Data
 	shareStat := w.getShareStatistic(shares)
 
 	bill, err := w.minerService.GetBill(walletId)
@@ -62,7 +66,10 @@ func (w *walletService) GetWalletInfo(walletId string) (minerdash.WalletInfo, er
 		return minerdash.WalletInfo{}, err
 	}
 	payouts := bill.Data
-	workerStat := w.getWorkersStatistic(walletId)
+	workerStat, err := w.getWorkersStatistic(walletId)
+	if err != nil {
+		return minerdash.WalletInfo{}, err
+	}
 	newWorkers := w.makeNewWorkers(workers, workerStat)
 
 	futureInc, err := w.minerService.GetFutureIncome()
@@ -88,10 +95,17 @@ func (w *walletService) GetWalletInfo(walletId string) (minerdash.WalletInfo, er
 	return walletInfo, nil
 }
 
-func (w *walletService) GetWalletWorkerInfo(walletId string, workerId string) minerdash.WorkerInfo {
-	shares := w.minerService.GetShares(walletId, workerId).Data
+func (w *walletService) GetWalletWorkerInfo(walletId string, workerId string) (minerdash.WorkerInfo, error) {
+	data, err := w.minerService.GetShares(walletId, workerId)
+	if err != nil {
+		return minerdash.WorkerInfo{}, err
+	}
+	shares := data.Data
 	shareStat := w.getShareStatistic(shares)
-	workers1dHashrate := w.minerdashRepository.GetAvgHashrate1d(walletId, workerId)
+	workers1dHashrate, err := w.minerdashRepository.GetAvgHashrate1d(walletId, workerId)
+	if err != nil {
+		return minerdash.WorkerInfo{}, err
+	}
 
 	var worker1d minerdash.Worker
 
@@ -109,17 +123,20 @@ func (w *walletService) GetWalletWorkerInfo(walletId string, workerId string) mi
 		Invalid24h: shareStat.invalidShares24h, Stale24hStake: shareStat.staleSharesStake24h, Invalid24hStake: shareStat.invalidSharesStake24h}
 
 	workerInfo := minerdash.WorkerInfo{Code: 200, Total: workerTotal, Shares: shares}
-	return workerInfo
+	return workerInfo, nil
 }
 
 // if there is activity in the last 20 minutes - online; calculate online and offline workers
-func (w *walletService) getWorkersStatistic(walletId string) workerOnlineStatistic {
+func (w *walletService) getWorkersStatistic(walletId string) (workerOnlineStatistic, error) {
 	const msToSec = 1000000000
 	online := 0
 	offline := 0
 	workersState := make(map[string]bool)
 
-	workers := w.redisRepository.GetLatestWorker(walletId)
+	workers, err := w.redisRepository.GetLatestWorker(walletId)
+	if err != nil {
+		return workerOnlineStatistic{}, nil
+	}
 	for k, v := range workers {
 		ts, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
@@ -134,7 +151,7 @@ func (w *walletService) getWorkersStatistic(walletId string) workerOnlineStatist
 			offline++
 		}
 	}
-	return workerOnlineStatistic{online, offline, workersState}
+	return workerOnlineStatistic{online, offline, workersState}, nil
 }
 
 // get shares statistic

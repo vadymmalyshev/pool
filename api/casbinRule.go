@@ -15,7 +15,7 @@ type CasbinRuleAPI struct {
 }
 
 func NewCasbinRuleAPI() *CasbinRuleAPI {
-	return &CasbinRuleAPI{casbin.NewCasRuleRepository(config.GetDB())}
+	return &CasbinRuleAPI{casbin.NewCasRuleRepository(config.GetIDPDB())}
 }
 
 // Handle GET /api/rule/get/:ruleID

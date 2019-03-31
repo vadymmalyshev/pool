@@ -2,6 +2,7 @@ package billing
 
 import (
 	"fmt"
+	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	. "git.tor.ph/hiveon/pool/models"
@@ -22,7 +23,7 @@ type BillingRepositorer interface {
 	SaveWorker(worker Worker) error
 	DeleteWorker(name string)
 	FindWorkerByName(name string) (Worker, error)
-	GetWalletEarning(wallet string, date string) (WalletEarning)
+	GetWalletEarning(wallet string, date string) (WalletEarning, error)
 	SaveWorkerStatistic(workerStatistic BillingWorkerStatistic, wallet string, worker string) (*Worker, error)
 	SaveWorkerMoney(moneyStatistic BillingWorkerMoney) error
 }
@@ -83,7 +84,7 @@ func (r *BillingRepository) CreateWorkerIfNotExists(worker string) (*Worker, err
 
 func (r *BillingRepository) CreateWalletIfNotExists(wallet string, coinName string) (*Wallet, error) {
 	var billingWallet Wallet
-	coin, err :=  r.CreateCoinIfNotExists(coinName)
+	coin, err := r.CreateCoinIfNotExists(coinName)
 	if err != nil {
 		return nil, err
 	}
@@ -143,10 +144,10 @@ func (r *BillingRepository) FindWorkerByName(name string) (Worker, error) {
 	return billingWorker, err
 }
 
-func (r *BillingRepository) GetWalletEarning(wallet string, date string) (WalletEarning) {
+func (r *BillingRepository) GetWalletEarning(wallet string, date string) (WalletEarning, error) {
 	var result Earning
 
-	sql :=  fmt.Sprintf(` select w.address, sum(hashrate) as hashrate, sum(usd) as usd, sum(cny) as cny, sum(btc) as btc, sum(commission_usd) as commission
+	sql := fmt.Sprintf(` select w.address, sum(hashrate) as hashrate, sum(usd) as usd, sum(cny) as cny, sum(btc) as btc, sum(commission_usd) as commission
 	from billing_money m
 	join billing_statistic b
 	on b.worker_id = m.worker_id
@@ -156,11 +157,12 @@ func (r *BillingRepository) GetWalletEarning(wallet string, date string) (Wallet
     and w.address = '%s'
     group by w.address`, date, wallet)
 
-	if err := r.client.Raw(sql).Row().Scan(&result.Address, &result.Hashrate, &result.USD, &result.CNY, &result.BTC, &result.Commission_USD); err != nil {
-		fmt.Errorf(err.Error())
+	err := r.client.Raw(sql).Row().Scan(&result.Address, &result.Hashrate, &result.USD, &result.CNY, &result.BTC, &result.Commission_USD)
+	if apierrors.HandleError(err) {
+		return WalletEarning{}, err
 	}
 	result.Date = date
-	return WalletEarning{200,result}
+	return WalletEarning{200, result}, nil
 }
 
 func (r *BillingRepository) SaveWorkerStatistic(workerStatistic BillingWorkerStatistic, wallet string, worker string) (*Worker, error) {
@@ -176,8 +178,3 @@ func (r *BillingRepository) SaveWorkerMoney(moneyStatistic BillingWorkerMoney) e
 	r.client.NewRecord(moneyStatistic)
 	return r.client.Create(&moneyStatistic).Error
 }
-
-
-
-
-

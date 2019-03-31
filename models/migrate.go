@@ -17,7 +17,6 @@ func Migrate(db *gorm.DB) error {
 		&Worker{},
 		&BillingWorkerStatistic{},
 		&BillingWorkerMoney{},
-		&casbin.CasbinRule{},
 	}
 
 	var tableNames string
@@ -40,6 +39,29 @@ func Migrate(db *gorm.DB) error {
 	}
 
 	return err
+}
+
+// Migrate creates tables for IDP database
+func MigrateIDP(db *gorm.DB) error {
+	tables := []interface{}{
+		&casbin.CasbinRule{},
+	}
+
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"table_names": strings.TrimSpace(tableNames),
+	}).Info("migrating model tables")
+
+	err := db.AutoMigrate(tables...).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // AddForeignKeyAndReferencedKey supports add foreign key for gorm table models.
