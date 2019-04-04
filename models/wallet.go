@@ -10,9 +10,9 @@ import (
 // Wallet represents wallet db model
 type Wallet struct {
 	gorm.Model
-	Address             string `gorm:"not null"`
-	Coin                Coin `gorm:"foreignkey:CoinID"`
-	CoinID              uint
+	Address string `gorm:"not null"`
+	Coin    Coin   `gorm:"foreignkey:CoinID"`
+	CoinID  uint
 }
 
 const (
@@ -32,7 +32,7 @@ func (Wallet) AdminPath() string {
 // Coin represents coin db model
 type Coin struct {
 	gorm.Model
-	Name string `gorm:"not null"`
+	Name string `gorm:"not null;unique"`
 }
 
 // TableName represent Coin table name. Used by Gorm

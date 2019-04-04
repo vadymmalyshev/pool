@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
-	. "git.tor.ph/hiveon/pool/internal/billing"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"git.tor.ph/hiveon/pool/internal/billing"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	errs := make(chan error, 0)
 
-	calc := NewBillingCalculator()
+	calc := billing.NewBillingCalculator()
 	calc.StartCalculation(errs)
 
 	go func() {
@@ -21,6 +22,5 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	log.Info("Billing terminated", <-errs)
+	logrus.Info("Billing terminated", <-errs)
 }
-
