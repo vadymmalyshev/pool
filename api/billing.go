@@ -46,7 +46,7 @@ func (h *BillingAPI) HandleWorkersFee() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(201, charge.Date)
+		c.JSON(200, charge.Date)
 	}
 }
 
@@ -64,6 +64,6 @@ func (h *BillingAPI) HandleWorkerBill() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(201, bills)
+		c.JSON(200, bills)
 	}
 }

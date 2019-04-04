@@ -61,7 +61,7 @@ func main() {
 	r.DELETE("/api/rule/delete/:ruleID", casbinRuleHandler.DeleteCasbianRule())
 
 	r.POST("/api/charge", billingHandler.HandleWorkersFee())
-	r.PUT("/api/bill/:date", billingHandler.HandleWorkerBill())
+	r.POST("/api/bill/:date", billingHandler.HandleWorkerBill())
 
 	initCasbinMiddleware(r)
 
