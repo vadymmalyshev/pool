@@ -55,7 +55,7 @@ func (h *BillingAPI) HandleWorkerBill() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		date, err := time.Parse(time.RFC3339, c.Param(paramDate))
 		if apierrors.HandleError(err) {
-			c.AbortWithStatusJSON(400, apierrors.NewApiErr(400, "Invalid JSON format"))
+			c.AbortWithStatusJSON(400, apierrors.NewApiErr(400, "Incorrect input params"))
 			return
 		}
 

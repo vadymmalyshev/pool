@@ -224,7 +224,7 @@ func (r *BillingRepository) SaveWorkerMoney(moneyStatistic models.BillingWorkerM
 // formattedDate - 02.01.2006
 func (r *BillingRepository) FindPaidWorkersFee(formattedDate string, workerID int) error {
 	var fee models.WorkerFee
-	notFound := r.client.Where("billing_date = ? AND worker_id=? AND paid = ?", formattedDate, workerID, true).
+	notFound := r.client.Where(models.WorkerFee{Date: formattedDate, WorkerID: workerID, Paid: true}).
 		First(&fee).RecordNotFound()
 
 	if notFound {
