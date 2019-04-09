@@ -46,9 +46,11 @@ func doMigrate(cmd *cobra.Command, args []string) {
 		logrus.Panicf("failed to init db: %s", err)
 	}
 
-	err = models.Migrate(db)
+	if err = models.Migrate(db); err != nil {
+		logrus.Panicf("something went wrong: %s", err)
+	}
 
-	if err != nil {
+	if err = models.MigrateWorkerFees(db); err != nil {
 		logrus.Panicf("something went wrong: %s", err)
 	}
 
@@ -71,6 +73,7 @@ func addAdmin(cmd *cobra.Command, args []string) {
 
 func runServer(cmd *cobra.Command, args []string) {
 	db, err := postgres.Connect(config.DB)
+	fmt.Println(config.DB)
 
 	if err != nil {
 		logrus.Panicf("failed to init hiveon db: %s", err)

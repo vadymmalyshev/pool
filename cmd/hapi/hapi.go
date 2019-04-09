@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-	"strconv"
-
-	"git.tor.ph/hiveon/pool/api"
-	"github.com/casbin/casbin"
-	"github.com/casbin/redis-adapter"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
-	"git.tor.ph/hiveon/pool/config"
-	. "git.tor.ph/hiveon/pool/internal/api/middleware"
+	"github.com/casbin/casbin"
+	"github.com/casbin/redis-adapter"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	"git.tor.ph/hiveon/pool/api"
+	"git.tor.ph/hiveon/pool/config"
+	"git.tor.ph/hiveon/pool/internal/api/middleware"
 )
 
 func main() {
@@ -60,6 +60,9 @@ func main() {
 	r.PUT("/api/rule/update", casbinRuleHandler.UpdateCasbinRule())
 	r.DELETE("/api/rule/delete/:ruleID", casbinRuleHandler.DeleteCasbianRule())
 
+	r.POST("/api/charge", billingHandler.HandleWorkersFee())
+	r.POST("/api/bill/:date", billingHandler.HandleWorkerBill())
+
 	initCasbinMiddleware(r)
 
 	go func() {
@@ -78,5 +81,5 @@ func main() {
 func initCasbinMiddleware(r *gin.Engine) {
 	a_redis := redisadapter.NewAdapter("tcp", config.Redis.Host+":"+strconv.Itoa(config.Redis.Port))
 	e := casbin.NewEnforcer("internal/casbin/authz_model.conf", a_redis)
-	r.Use(NewAuthorizer(e))
+	r.Use(middleware.NewAuthorizer(e))
 }
