@@ -2,8 +2,9 @@ package models
 
 import (
 	"fmt"
-	"git.tor.ph/hiveon/pool/internal/casbin"
 	"strings"
+
+	"git.tor.ph/hiveon/pool/internal/casbin"
 
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -45,6 +46,29 @@ func Migrate(db *gorm.DB) error {
 func MigrateIDP(db *gorm.DB) error {
 	tables := []interface{}{
 		&casbin.CasbinRule{},
+	}
+
+	var tableNames string
+	for _, table := range tables {
+		tableNames += fmt.Sprintf(" %s", db.NewScope(table).TableName())
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"table_names": strings.TrimSpace(tableNames),
+	}).Info("migrating model tables")
+
+	err := db.AutoMigrate(tables...).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Migrate creates tables for workerFees.
+func MigrateWorkerFees(db *gorm.DB) error {
+	tables := []interface{}{
+		&WorkerFee{},
 	}
 
 	var tableNames string
