@@ -106,13 +106,12 @@ services:
   hconsumer:
 #    restart: on-failure
     <<: *idp_hiveon-dev-network
+    build:
+      context: .
+      dockerfile: hconsumer.Dockerfile
     container_name: hconsumer
     hostname: hconsumer
-    image: registry.tor.ph/hiveon/consumer:${CI_PIPELINE_ID:-latest}
-    external_links:
-      - ${IDP_DB_HOST:-postgres}
-      - influx
-      - redis
+    image: registry.tor.ph/hiveon/hconsumer:${CI_PIPELINE_ID:-latest}
     env_file:
       - ./devops/pool.dev.env
     volumes:

@@ -1,0 +1,135 @@
+version: '3.5'
+#Volumes
+volumes:
+  redis_data:
+  influx_data:
+  admin_postgres_data:
+#Networks
+networks:
+  hiveon-dev-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.100.101.0/24
+#Templates
+x-hiveon-dev-network:
+  &hiveon-dev-network
+  networks:
+  - hiveon-dev-network
+
+#Containers
+services:
+  pool-build-deps:
+    image: pool-build-deps
+    build: .
+  redis:
+    <<: *hiveon-dev-network
+    restart: on-failure
+    image: redis:4.0.5-alpine
+    container_name: redis
+    hostname: redis
+#    ports:
+#      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    entrypoint: redis-server --appendonly yes
+    environment:
+      TZ: "Europe/Kiev"
+      LANG: "C.UTF-8"
+  postgres:
+    <<: *hiveon-dev-network
+    image: postgres
+    container_name: postgres
+    hostname: postgres
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - admin_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=oauth
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=8GWbz2JF4FMe1Q8X
+  influx:
+    <<: *hiveon-dev-network
+    restart: on-failure
+    image: influxdb:1.5-alpine
+    container_name: influx
+    hostname: influx
+#    ports:
+#      - "127.0.0.1:8086:8086"
+    volumes:
+      - influx_data:/var/lib/influxdb
+    env_file:
+      - devops/pool.dev.env
+
+  hapi:
+    build:
+      context: .
+      dockerfile: hapi.Dockerfile
+#    restart: on-failure
+    <<: *hiveon-dev-network
+    image: registry.tor.ph/hiveon/pool/hapi:${CI_PIPELINE_ID:-latest}
+    container_name: hapi
+    hostname: hapi
+    ports:
+      - "8090:8090"
+      - "8080:8080"
+    env_file:
+      - ./devops/pool.dev.env
+    volumes:
+      - "./config:/hapi/config"
+
+  hadmin:
+    build:
+      context: .
+      dockerfile: hadmin.Dockerfile
+#    restart: on-failure
+    <<: *hiveon-dev-network
+    image: registry.tor.ph/hiveon/pool/hadmin:${CI_PIPELINE_ID:-latest}
+    container_name: hadmin
+    hostname: hadmin
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./devops/pool.dev.env
+    volumes:
+      - "./config:/hadmin/config"
+
+  hasbin:
+    build:
+      context: .
+      dockerfile: hasbin.Dockerfile
+#    restart: on-failure
+    <<: *hiveon-dev-network
+    image: registry.tor.ph/hiveon/pool/hasbin:${CI_PIPELINE_ID:-latest}
+    container_name: hasbin
+    hostname: hasbin
+    env_file:
+      - devops/pool.dev.env
+    volumes:
+      - "./config:/hasbin/config"
+  hbilling:
+    build:
+      context: .
+      dockerfile: hbilling.Dockerfile
+#    restart: on-failure
+    <<: *hiveon-dev-network
+    image: registry.tor.ph/hiveon/pool/hbilling:${CI_PIPELINE_ID:-latest}
+    container_name: hbilling
+    hostname: hbilling
+    env_file:
+      - ./devops/pool.dev.env
+    volumes:
+      - "./config:/hbilling/config"
+
+  hconsumer:
+#    restart: on-failure
+    <<: *hiveon-dev-network
+    container_name: hconsumer
+    hostname: hconsumer
+    image: registry.tor.ph/hiveon/consumer:${CI_PIPELINE_ID:-latest}
+    env_file:
+      - ./devops/pool.dev.env
+    volumes:
+      - "./config:/hconsumer/config"
