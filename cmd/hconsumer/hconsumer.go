@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"git.tor.ph/hiveon/pool/internal/consumer/influx"
 	"git.tor.ph/hiveon/pool/internal/consumer/kafka"
-	log "github.com/sirupsen/logrus"
-	"github.com/thedevsaddam/gojsonq"
 	"git.tor.ph/hiveon/pool/internal/consumer/scheduler"
 	"git.tor.ph/hiveon/pool/internal/consumer/telebot"
-	"git.tor.ph/hiveon/pool/internal/consumer/utils"
+	log "github.com/sirupsen/logrus"
+	"github.com/thedevsaddam/gojsonq"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io"
 	"io/ioutil"
@@ -44,18 +43,18 @@ func main() {
 	mw := io.MultiWriter(os.Stdout, f)
 	log.SetOutput(mw) // multilogging, both stdout and file
 
-	conf := utils.GetConfig()
-
+//	conf := utils.GetConfig()
+/*
 	telebot.CreateBot(
 		conf.GetString("telegrambot.token"),
 		conf.GetInt64("telegrambot.chatID"))
 
 	createLoggerEnpoint(telebot.Bot)
-
+*/
 	go kafka.StartConsumer(errs, buffer, telebot.Bot)
 	go influx.StartDBProducer(errs, buffer, telebot.Bot)
 	go scheduler.StartScheduler(errs, telebot.Bot)
-	go telebot.StartBot()
+	//go telebot.StartBot()
 
 	go func() {
 		c := make(chan os.Signal)

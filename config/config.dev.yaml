@@ -116,7 +116,7 @@ pool:
 
 kafka:
   brokers: "ec2-18-197-235-102.eu-central-1.compute.amazonaws.com:9092, ec2-18-197-240-139.eu-central-1.compute.amazonaws.com:9092,ec2-18-194-140-186.eu-central-1.compute.amazonaws.com:9092"
-  ca_location: "./kafka/ca-cert"
+  ca_location: "./internal/consumer/kafka/ca-cert"
   username: "hiveos_eth_web_prod"
   password: "YX7pfF3JrXACd6GK"
   topics: "hiveos_eth_stats_prod2 hiveos_eth_stats_prod hiveos_eth_exchange_prod"

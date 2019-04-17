@@ -3,7 +3,7 @@ package redis
 import (
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	. "git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"git.tor.ph/hiveon/pool/internal/consumer/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -25,10 +25,10 @@ func NewRedisRepository() IRedisRepository {
 }
 
 func GetRedisClient() *redis.Client {
-	host := GetConfig().GetString("redis.host")
-	port := GetConfig().GetString("redis.port")
-	password := GetConfig().GetString("redis.password")
-	db := GetConfig().GetInt("redis.db")
+	host := utils.GetConfig().GetString("redis.host")
+	port := utils.GetConfig().GetString("redis.port")
+	password := utils.GetConfig().GetString("redis.password")
+	db := utils.GetConfig().GetInt("redis.db")
 	client := redis.NewClient(&redis.Options{
 		Addr:     host + ":" + port,
 		Password: password,
@@ -69,9 +69,9 @@ func (repo *RedisRepository) RedisDel(wallet string, value string) {
 func (repo *RedisRepository) RedisAlive() (s string) {
 	_, err := repo.redisClient.Ping().Result()
 	if err != nil {
-		return IsDown
+		return utils.IsDown
 	}
-	return IsUP
+	return utils.IsUP
 }
 
 func (repo *RedisRepository) RedisGetPoints(hashId string) (map[string]string) {

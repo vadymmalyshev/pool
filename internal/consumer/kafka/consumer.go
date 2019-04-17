@@ -6,8 +6,8 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
 	"git.tor.ph/hiveon/pool/internal/consumer/model"
-	. "git.tor.ph/hiveon/pool/internal/consumer/redis"
-	. "git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"git.tor.ph/hiveon/pool/internal/consumer/redis"
+	"git.tor.ph/hiveon/pool/internal/consumer/utils"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"os"
 	"os/signal"
@@ -15,19 +15,19 @@ import (
 	"syscall"
 )
 
-var redisRepository IRedisRepository
+var redisRepository redis.IRedisRepository
 var c *kafka.Consumer
 var miningPools string
 
 func StartConsumer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 
-	brokerList := GetConfig().GetString("kafka.brokers")
-	caLocation := GetConfig().GetString("kafka.ca_location")
-	user := GetConfig().GetString("kafka.username")
-	password := GetConfig().GetString("kafka.password")
-	groupId := GetConfig().GetString("kafka.group_id")
-	topics := strings.Fields(GetConfig().GetString("kafka.topics"))
-	miningPools = GetConfig().GetString("kafka.mining_pools")
+	brokerList := utils.GetConfig().GetString("kafka.brokers")
+	caLocation := utils.GetConfig().GetString("kafka.ca_location")
+	user := utils.GetConfig().GetString("kafka.username")
+	password := utils.GetConfig().GetString("kafka.password")
+	groupId := utils.GetConfig().GetString("kafka.group_id")
+	topics := strings.Fields(utils.GetConfig().GetString("kafka.topics"))
+	miningPools = utils.GetConfig().GetString("kafka.mining_pools")
 
 	config := &kafka.ConfigMap{
 		"api.version.request":  "true",
@@ -42,7 +42,7 @@ func StartConsumer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 		//"go.application.rebalance.enable": true,
 		"default.topic.config":            kafka.ConfigMap{"auto.offset.reset": "earliest"},
 	}
-	redisRepository = NewRedisRepository()
+	redisRepository = redis.NewRedisRepository()
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -64,7 +64,7 @@ func StartConsumer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 	}
 	log.Info("Subscribed to topics: ", topics)
 
-	addTelebotKafkaEndpoints(telebot)
+	//addTelebotKafkaEndpoints(telebot)
 
 	run := true
 	for run == true {
@@ -116,7 +116,7 @@ func proceedRow(row string, buffer chan []byte) {
 		}
 
 		lastUpdateParams["0"] = miner.Tags["rig"]
-		lastUpdateParams["1"], err = ParseTimestampToUnix(miner.Timestamp)
+		lastUpdateParams["1"], err = utils.ParseTimestampToUnix(miner.Timestamp)
 		if err!=nil {
 			log.Error("Failed to parse the date: ", err)
 		}
@@ -226,7 +226,7 @@ func createMiner(res map[string]interface{}, row string) (model.Miner){
 
 func addTelebotKafkaEndpoints(telebot *tb.Bot) {
 	telebot.Handle("/kafka", func(m *tb.Message) {
-		message := IsUP
+		message := utils.IsUP
 		/* _,er :=c.GetMetadata(nil, true,10000)
 
 		if(er != nil) {

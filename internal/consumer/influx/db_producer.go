@@ -6,8 +6,8 @@ import (
 	"github.com/influxdata/influxdb1-client"
 	log "github.com/sirupsen/logrus"
 	"git.tor.ph/hiveon/pool/internal/consumer/model"
-	. "git.tor.ph/hiveon/pool/internal/consumer/redis"
-	. "git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"git.tor.ph/hiveon/pool/internal/consumer/redis"
+	"git.tor.ph/hiveon/pool/internal/consumer/utils"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"net/url"
 	"os"
@@ -19,7 +19,7 @@ import (
 )
 
 var clInflux *client.Client
-var redisRepository IRedisRepository
+var redisRepository redis.IRedisRepository
 
 var retention string
 var database string
@@ -31,15 +31,15 @@ func StartDBProducer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	redisRepository = NewRedisRepository()
-	addTelebotRedisEndpoints(telebot)
+	redisRepository = redis.NewRedisRepository()
+	//addTelebotRedisEndpoints(telebot)
 
-	retention = GetConfig().GetString("kafka.retention")
-	database = GetConfig().GetString("kafka.db_name")
-	precision = GetConfig().GetString("kafka.precision")
+	retention = utils.GetConfig().GetString("kafka.retention")
+	database = utils.GetConfig().GetString("kafka.db_name")
+	precision = utils.GetConfig().GetString("kafka.precision")
 
 	clInflux := getMinerdashClient();
-	addTelebotInfluxEndpoints(telebot)
+	//addTelebotInfluxEndpoints(telebot)
 
 	log.Info("Created influx client ", clInflux.Addr())
 
@@ -56,10 +56,10 @@ func StartDBProducer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 }
 
 func getMinerdashClient() (*client.Client) {
-	host := GetConfig().GetString("influx.host")
-	port := GetConfig().GetString("influx.port")
-	user := GetConfig().GetString("influx.username")
-	password := GetConfig().GetString("influx.password")
+	host := utils.GetConfig().GetString("influx.host")
+	port := utils.GetConfig().GetString("influx.port")
+	user := utils.GetConfig().GetString("influx.user")
+	password := utils.GetConfig().GetString("influx.password")
 
 	u, err := url.Parse(fmt.Sprintf("http://%s:%s", host, port))
 
@@ -157,10 +157,10 @@ func addTelebotRedisEndpoints(telebot *tb.Bot) {
 
 func addTelebotInfluxEndpoints(telebot *tb.Bot) {
 	telebot.Handle("/influx", func(m *tb.Message) {
-		message := IsUP
+		message := utils.IsUP
 		_,_,er := clInflux.Ping()
 		if(er != nil) {
-			message = IsDown
+			message = utils.IsDown
 		}
 		telebot.Send(m.Chat, "Influx status : " + message)
 	})

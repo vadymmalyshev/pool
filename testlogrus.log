@@ -1,0 +1,105 @@
+{
+  "level": "info",
+  "msg": "Created influx client http://127.0.0.1:8086",
+  "time": "17-04-2019 12:48:48"
+}
+{
+  "level": "info",
+  "msg": "Consuming the currency rates : 2019-04-17 12:48:48.183959 +0200 CEST m=+0.472599402",
+  "time": "17-04-2019 12:48:48"
+}
+{
+  "level": "info",
+  "msg": "Created consumer rdkafka#consumer-1",
+  "time": "17-04-2019 12:48:48"
+}
+{
+  "level": "info",
+  "msg": "Subscribed to topics: [hiveos_eth_stats_prod2 hiveos_eth_stats_prod hiveos_eth_exchange_prod]",
+  "time": "17-04-2019 12:48:48"
+}
+{
+  "level": "info",
+  "msg": "Created influx client http://127.0.0.1:8086",
+  "time": "17-04-2019 12:48:48"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:03.832545 +0200 CEST m=+16.120719342",
+  "time": "17-04-2019 12:49:03"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:03.997163 +0200 CEST m=+16.285328960",
+  "time": "17-04-2019 12:49:03"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:04.154312 +0200 CEST m=+16.442472990",
+  "time": "17-04-2019 12:49:04"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:04.330694 +0200 CEST m=+16.618849377",
+  "time": "17-04-2019 12:49:04"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:04.498084 +0200 CEST m=+16.786234567",
+  "time": "17-04-2019 12:49:04"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:04.676879 +0200 CEST m=+16.965023905",
+  "time": "17-04-2019 12:49:04"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:04.856312 +0200 CEST m=+17.144451810",
+  "time": "17-04-2019 12:49:04"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:05.004045 +0200 CEST m=+17.292179975",
+  "time": "17-04-2019 12:49:05"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:05.166511 +0200 CEST m=+17.454642037",
+  "time": "17-04-2019 12:49:05"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:05.333407 +0200 CEST m=+17.621532895",
+  "time": "17-04-2019 12:49:05"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:05.529757 +0200 CEST m=+17.817876335",
+  "time": "17-04-2019 12:49:05"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:05.774969 +0200 CEST m=+18.063081480",
+  "time": "17-04-2019 12:49:05"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:05.937076 +0200 CEST m=+18.225183242",
+  "time": "17-04-2019 12:49:05"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:06.102105 +0200 CEST m=+18.390207092",
+  "time": "17-04-2019 12:49:06"
+}
+{
+  "level": "info",
+  "msg": "Added a point to Influx : 2019-04-17 12:49:06.263879 +0200 CEST m=+18.551977220",
+  "time": "17-04-2019 12:49:06"
+}
+{
+  "level": "info",
+  "msg": "terminatedinterrupt",
+  "time": "17-04-2019 12:49:06"
+}

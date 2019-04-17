@@ -8,7 +8,7 @@ require (
 	github.com/casbin/casbin v1.8.1
 	github.com/casbin/gorm-adapter v0.0.0-20190103152927-5f0f4b5ecad7
 	github.com/casbin/redis-adapter v0.0.0-20190105032110-b36d844dade5
-	github.com/confluentinc/confluent-kafka-go v1.0.0 // indirect
+	github.com/confluentinc/confluent-kafka-go v1.0.0
 	github.com/disintegration/imaging v1.6.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/gin-contrib/sessions v0.0.0-20190226023029-1532893d996f
@@ -48,5 +48,5 @@ require (
 	github.com/yosssi/gohtml v0.0.0-20190128141317-9b7db94d32d9 // indirect
 	golang.org/x/oauth2 v0.0.0-20190220154721-9b3c75971fc9
 	gopkg.in/resty.v1 v1.11.0
-	gopkg.in/tucnak/telebot.v2 v2.0.0-20190415090633-8c1c512262f2 // indirect
+	gopkg.in/tucnak/telebot.v2 v2.0.0-20190415090633-8c1c512262f2
 )

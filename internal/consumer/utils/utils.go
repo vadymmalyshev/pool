@@ -17,8 +17,8 @@ func init() {
 	v = viper.New()
 	v.SetConfigType("yaml")
 
-	v.AddConfigPath(".././conf/")
-	v.AddConfigPath("./conf/")
+	v.AddConfigPath(".././config/")
+	v.AddConfigPath("./config/")
 
 	err := v.ReadInConfig()
 	if err != nil {

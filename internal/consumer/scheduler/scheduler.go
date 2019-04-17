@@ -3,7 +3,7 @@ package scheduler
 import (
 	"fmt"
 	"github.com/robfig/cron"
-	. "git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"git.tor.ph/hiveon/pool/internal/consumer/utils"
 	"github.com/influxdata/influxdb1-client"
 	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -20,13 +20,13 @@ var retention, database, measurement, precision string
 var clInflux *client.Client
 
 func StartScheduler(er chan error, telebot *tb.Bot) {
-	ethAPI = GetConfig().GetString("scheduler.eth_API")
-	cnyAPI = GetConfig().GetString("scheduler.cny_API")
+	ethAPI = utils.GetConfig().GetString("scheduler.eth_API")
+	cnyAPI = utils.GetConfig().GetString("scheduler.cny_API")
 
-	retention = GetConfig().GetString("scheduler.retention")
-	measurement = GetConfig().GetString("scheduler.measurement")
-	database = GetConfig().GetString("kafka.db_name")
-	precision = GetConfig().GetString("kafka.precision")
+	retention = utils.GetConfig().GetString("scheduler.retention")
+	measurement = utils.GetConfig().GetString("scheduler.measurement")
+	database = utils.GetConfig().GetString("kafka.db_name")
+	precision = utils.GetConfig().GetString("kafka.precision")
 
 	clInflux := getMinerdashClient()
 	log.Info("Created influx client ", clInflux.Addr())
@@ -47,7 +47,7 @@ func fethCurrencyRates() {
 	if err != nil {
 		log.Error(err)
 	}
-	res := ParseJSON(string(body), false)
+	res := utils.ParseJSON(string(body), false)
 
 	resp, err = http.Get(cnyAPI)
 	if err != nil {
@@ -57,16 +57,16 @@ func fethCurrencyRates() {
 	if err != nil {
 		log.Error(err)
 	}
-	resCny := ParseJSON(string(body), true)
+	resCny := utils.ParseJSON(string(body), true)
 
 	writeToInflux(res, resCny)
 }
 
 func getMinerdashClient() *client.Client {
-	host := GetConfig().GetString("influx.host")
-	port := GetConfig().GetString("influx.port")
-	user := GetConfig().GetString("influx.username")
-	password := GetConfig().GetString("influx.password")
+	host := utils.GetConfig().GetString("influx.host")
+	port := utils.GetConfig().GetString("influx.port")
+	user := utils.GetConfig().GetString("influx.user")
+	password := utils.GetConfig().GetString("influx.password")
 
 	u, err := url.Parse(fmt.Sprintf("http://%s:%s", host, port))
 
