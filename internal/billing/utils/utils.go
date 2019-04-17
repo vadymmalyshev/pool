@@ -3,7 +3,6 @@ package utils
 import (
 	"encoding/json"
 	"strings"
-
 	"github.com/sirupsen/logrus"
 )
 

@@ -3,7 +3,6 @@ package billing
 import (
 	"fmt"
 	"time"
-
 	"git.tor.ph/hiveon/pool/models"
 )
 

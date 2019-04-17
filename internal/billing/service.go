@@ -9,7 +9,7 @@ import (
 
 	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/billing/utils"
-	. "git.tor.ph/hiveon/pool/models"
+	"git.tor.ph/hiveon/pool/models"
 	"github.com/mileusna/crontab"
 	"github.com/sirupsen/logrus"
 )
@@ -131,7 +131,7 @@ func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]stri
 
 				if worker != "" {
 					wallet := WalletWorkerMapping[worker]
-					stat := BillingWorkerStatistic{ValidShares: validShares, InvalidShares: invalidShares,
+					stat := models.BillingWorkerStatistic{ValidShares: validShares, InvalidShares: invalidShares,
 						StaleShares: staleShares, ActivityPercentage: percentage}
 					work, err := b.BillingRepo.SaveWorkerStatistic(stat, wallet, worker)
 
@@ -149,8 +149,8 @@ func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]stri
 	return nil
 }
 
-func (b BillingCalculator) calculateAndSaveCommission(stat BillingWorkerStatistic, hashrateConfig float64,
-	rates map[string]float64, worker *Worker) error {
+func (b BillingCalculator) calculateAndSaveCommission(stat models.BillingWorkerStatistic, hashrateConfig float64,
+	rates map[string]float64, worker *models.Worker) error {
 	hashrate := stat.ValidShares * hashrateConfig
 	hashrate_ := hashrate / 100000000
 	USD := roundFloat(hashrate_ * rates["usd"])
@@ -158,7 +158,7 @@ func (b BillingCalculator) calculateAndSaveCommission(stat BillingWorkerStatisti
 	CNY := roundFloat(hashrate_ * rates["cny"])
 
 	Commission := roundFloat(USD * config.DefaultPercentage)
-	workerCommission := BillingWorkerMoney{Hashrate: hashrate, USD: USD, BTC: BTC, CNY: CNY, CommissionUSD: Commission, Worker: *worker}
+	workerCommission := models.BillingWorkerMoney{Hashrate: hashrate, USD: USD, BTC: BTC, CNY: CNY, CommissionUSD: Commission, Worker: *worker}
 
 	return b.BillingRepo.SaveWorkerMoney(workerCommission)
 }
