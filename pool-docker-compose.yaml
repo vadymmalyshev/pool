@@ -1,38 +1,60 @@
 version: '3.5'
-
+#Volumes
+volumes:
+  redis_data:
+  influx_data:
+#Networks
 networks:
-  pool_pool-network-dev:
+  idp_hiveon-dev-network:
     external: true
 #Templates
-x-pool_pool-network-dev:
-  &pool_pool-network-dev
+x-idp_hiveon-dev-network:
+  &idp_hiveon-dev-network
   networks:
-  - pool_pool-network-dev
+  - idp_hiveon-dev-network
 
 #Containers
 services:
+  redis:
+    <<: *idp_hiveon-dev-network
+    restart: on-failure
+    image: redis:4.0.5-alpine
+    container_name: redis
+    hostname: redis
+#    ports:
+#      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    entrypoint: redis-server --appendonly yes
+    environment:
+      TZ: "Europe/Kiev"
+      LANG: "C.UTF-8"
+
+  influx:
+    <<: *idp_hiveon-dev-network
+    restart: on-failure
+    image: influxdb:1.5-alpine
+    container_name: influx
+    hostname: influx
+#    ports:
+#      - "127.0.0.1:8086:8086"
+    volumes:
+      - influx_data:/var/lib/influxdb
+    env_file:
+      - devops/pool.dev.env
+
   hapi:
     build:
       context: .
-      dockerfile: hapiDockerfile
+      dockerfile: hapi.Dockerfile
 #    restart: on-failure
-    <<: *pool_pool-network-dev
+    <<: *idp_hiveon-dev-network
     image: registry.tor.ph/hiveon/pool/hapi:${CI_PIPELINE_ID:-latest}
     container_name: hapi
     hostname: hapi
-    ports:
-      - "8090:8090"
-      - "8080:8080"
-    external_links:
-      - influx
-      - hadmin
-      - hasbin
-      - hbilling
-      - redis
-      - idp
-      - hydra
-      - proxy
-#      - hconsumer
+#    ports:
+#      - "8090:8090"
+#      - "8080:8080"
     env_file:
       - ./devops/pool.dev.env
     volumes:
@@ -41,14 +63,14 @@ services:
   hadmin:
     build:
       context: .
-      dockerfile: hadminDockerfile
+      dockerfile: hadmin.Dockerfile
 #    restart: on-failure
-    <<: *pool_pool-network-dev
+    <<: *idp_hiveon-dev-network
     image: registry.tor.ph/hiveon/pool/hadmin:${CI_PIPELINE_ID:-latest}
     container_name: hadmin
     hostname: hadmin
-    ports:
-      - "3002:3002"
+#    "ports":
+#      - "127.0.0.1:3002:3002"
     env_file:
       - ./devops/pool.dev.env
     volumes:
@@ -57,9 +79,9 @@ services:
   hasbin:
     build:
       context: .
-      dockerfile: hasbinDockerfile
+      dockerfile: hasbin.Dockerfile
 #    restart: on-failure
-    <<: *pool_pool-network-dev
+    <<: *idp_hiveon-dev-network
     image: registry.tor.ph/hiveon/pool/hasbin:${CI_PIPELINE_ID:-latest}
     container_name: hasbin
     hostname: hasbin
@@ -70,9 +92,9 @@ services:
   hbilling:
     build:
       context: .
-      dockerfile: hbillingDockerfile
+      dockerfile: hbilling.Dockerfile
 #    restart: on-failure
-    <<: *pool_pool-network-dev
+    <<: *idp_hiveon-dev-network
     image: registry.tor.ph/hiveon/pool/hbilling:${CI_PIPELINE_ID:-latest}
     container_name: hbilling
     hostname: hbilling
@@ -83,7 +105,7 @@ services:
 
   hconsumer:
 #    restart: on-failure
-    <<: *pool_pool-network-dev
+    <<: *idp_hiveon-dev-network
     container_name: hconsumer
     hostname: hconsumer
     image: registry.tor.ph/hiveon/consumer:${CI_PIPELINE_ID:-latest}

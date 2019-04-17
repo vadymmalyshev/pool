@@ -1,4 +1,4 @@
-FROM registry.tor.ph/hiveon/pool/pool-base as pool-build-deps
+FROM registry.tor.ph/hiveon/pool/pool-base
 RUN mkdir -p /pool
 WORKDIR /pool
 COPY . .
