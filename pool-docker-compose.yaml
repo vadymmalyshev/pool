@@ -106,6 +106,9 @@ services:
   hconsumer:
 #    restart: on-failure
     <<: *idp_hiveon-dev-network
+    build:
+      context: .
+      dockerfile: hconsumer.Dockerfile
     container_name: hconsumer
     hostname: hconsumer
     image: registry.tor.ph/hiveon/hconsumer:${CI_PIPELINE_ID:-latest}
