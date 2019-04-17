@@ -3,7 +3,9 @@ package kafka
 import (
 	"encoding/json"
 	"fmt"
+	"git.tor.ph/hiveon/pool/config"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"git.tor.ph/hiveon/pool/internal/platform/kafka/client"
 	log "github.com/sirupsen/logrus"
 	"git.tor.ph/hiveon/pool/internal/consumer/model"
 	"git.tor.ph/hiveon/pool/internal/consumer/redis"
@@ -21,33 +23,15 @@ var miningPools string
 
 func StartConsumer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 
-	brokerList := utils.GetConfig().GetString("kafka.brokers")
-	caLocation := utils.GetConfig().GetString("kafka.ca_location")
-	user := utils.GetConfig().GetString("kafka.username")
-	password := utils.GetConfig().GetString("kafka.password")
-	groupId := utils.GetConfig().GetString("kafka.group_id")
-	topics := strings.Fields(utils.GetConfig().GetString("kafka.topics"))
-	miningPools = utils.GetConfig().GetString("kafka.mining_pools")
+	topics := strings.Fields(config.Kafka.KafkaTopics)
+	miningPools = config.Kafka.KafkaMiningPools
 
-	config := &kafka.ConfigMap{
-		"api.version.request":  "true",
-		"metadata.broker.list": brokerList,
-		"security.protocol":    "sasl_ssl",
-		"sasl.mechanisms":      "PLAIN",
-		"ssl.ca.location":      caLocation,
-		"sasl.username":        user,
-		"sasl.password":        password,
-		"group.id":             groupId,
-		//"go.events.channel.enable":        true,
-		//"go.application.rebalance.enable": true,
-		"default.topic.config":            kafka.ConfigMap{"auto.offset.reset": "earliest"},
-	}
 	redisRepository = redis.NewRedisRepository()
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	c, err := kafka.NewConsumer(config)
+	c, err := client.Connect(config.Kafka)
 
 	if err != nil {
 		log.Error("Failed to create consumer: ", err)

@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"git.tor.ph/hiveon/pool/config"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
 	"git.tor.ph/hiveon/pool/internal/consumer/utils"
@@ -25,12 +26,12 @@ func NewRedisRepository() IRedisRepository {
 }
 
 func GetRedisClient() *redis.Client {
-	host := utils.GetConfig().GetString("redis.host")
-	port := utils.GetConfig().GetString("redis.port")
-	password := utils.GetConfig().GetString("redis.password")
-	db := utils.GetConfig().GetInt("redis.db")
+	host := config.Redis.Host
+	port := config.Redis.Port
+	password := config.Redis.Pass
+	db, _ := strconv.Atoi(config.Redis.Name)
 	client := redis.NewClient(&redis.Options{
-		Addr:     host + ":" + port,
+		Addr:     host + ":" + strconv.Itoa(port),
 		Password: password,
 		DB:       db,
 	})

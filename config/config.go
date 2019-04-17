@@ -5,6 +5,7 @@ import (
 	"git.tor.ph/hiveon/pool/internal/platform/database"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra"
 	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
+	"git.tor.ph/hiveon/pool/internal/platform/kafka"
 	"git.tor.ph/hiveon/pool/internal/platform/server"
 	"os"
 	"path"
@@ -74,6 +75,19 @@ const (
 	hydraClientSecret = "hydra.client_secret"
 )
 
+const (
+	kafkaBrokers     = "kafka.brokers"
+	kafkaCaLocation  = "kafka.ca_location"
+	kafkaUsername    = "kafka.username"
+	kafkaPass        = "kafka.password"
+	kafkaTopics      = "kafka.topics"
+	kafkaGroupId     = "kafka.group_id"
+	kafkaRetention   = "kafka.retention"
+	kafkaDbName      = "kafka.db_name"
+	kafkaPrecision   = "kafka.precision"
+	kafkaMiningPools = "kafka.mining_pools"
+)
+
 // AdminPrefix represents url prefix for admin panel
 const AdminPrefix = "/admin"
 
@@ -93,6 +107,7 @@ var (
 	DefaultPercentage                                                                         float64
 	Redis                                                                                     database.Config
 	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
+	Kafka																					  kafka.Config
 
 	DBConn, IDPDBConn string
 
@@ -228,6 +243,19 @@ func init() {
 	API = api.Config{
 		Host: viper.GetString(apiHost),
 		Port: viper.GetInt(apiPort),
+	}
+
+	Kafka = kafka.Config{
+		KafkaBrokers: viper.GetString(kafkaBrokers),
+		KafkaCaLocation: viper.GetString(kafkaCaLocation),
+		KafkaUsername: viper.GetString(kafkaUsername),
+		KafkaPass: viper.GetString(kafkaPass),
+		KafkaTopics: viper.GetString(kafkaTopics),
+		KafkaGroupId: viper.GetString(kafkaGroupId),
+		KafkaRetention: viper.GetString(kafkaRetention),
+		KafkaDbName: viper.GetString(kafkaDbName),
+		KafkaPrecision: viper.GetString(kafkaPrecision),
+		KafkaMiningPools: viper.GetString(kafkaMiningPools),
 	}
 }
 

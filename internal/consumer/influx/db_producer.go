@@ -3,11 +3,12 @@ package influx
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/influxdata/influxdb1-client"
-	log "github.com/sirupsen/logrus"
+	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/consumer/model"
 	"git.tor.ph/hiveon/pool/internal/consumer/redis"
 	"git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"github.com/influxdata/influxdb1-client"
+	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"net/url"
 	"os"
@@ -56,12 +57,13 @@ func StartDBProducer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 }
 
 func getMinerdashClient() (*client.Client) {
-	host := utils.GetConfig().GetString("influx.host")
-	port := utils.GetConfig().GetString("influx.port")
-	user := utils.GetConfig().GetString("influx.user")
-	password := utils.GetConfig().GetString("influx.password")
 
-	u, err := url.Parse(fmt.Sprintf("http://%s:%s", host, port))
+	host := config.InfluxDB.Host
+	port := config.InfluxDB.Port
+	user := config.InfluxDB.User
+	password := config.InfluxDB.Pass
+
+	u, err := url.Parse(fmt.Sprintf("http://%s:%s", host, strconv.Itoa(port)))
 
 	if err != nil {
 		panic(err)
