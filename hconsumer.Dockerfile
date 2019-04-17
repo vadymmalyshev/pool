@@ -13,7 +13,7 @@ RUN apt update && \
     cd /hconsumer && \
     go mod vendor && \
     go mod tidy && \
-    go build hconsumer && \
+    go build cmd/hconsumer/hconsumer.go && \
     ls && \
     cp kafka/* conf/ && \
     cp -r kafka conf/ 
