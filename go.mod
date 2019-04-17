@@ -39,9 +39,10 @@ require (
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
 	github.com/sirupsen/logrus v1.3.0
+	github.com/smartystreets/goconvey v0.0.0-20180222194500-ef6db91d284a
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
-	github.com/thedevsaddam/gojsonq v2.2.0+incompatible // indirect
+	github.com/thedevsaddam/gojsonq v2.2.0+incompatible
 	github.com/theplant/cldr v0.0.0-20170713054817-b97a4c2a76cf // indirect
 	github.com/theplant/htmltestingutils v0.0.0-20171010073838-5313e1d8c06a // indirect
 	github.com/theplant/testingutils v0.0.0-20181126090146-80e83e84b643 // indirect
