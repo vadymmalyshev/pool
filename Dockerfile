@@ -10,6 +10,7 @@ RUN eval `(ssh-agent)` && \
     go build cmd/hadmin/hadmin.go && \
     go build cmd/hasbin/hasbin.go && \
     go build cmd/hapi/hapi.go && \
+    go build cmd/hconsumer/hconsumer.go && \
     cd cmd/hbilling && \
     go build -o hbilling && \
     mv hbilling /pool/ && \
