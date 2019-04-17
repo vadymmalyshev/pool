@@ -1,0 +1,37 @@
+image: registry.tor.ph/infra/d3:latest
+stages:
+  - build
+  - auto-deploy-dev
+  - manual-deploy-branch
+
+before_script:
+  - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" ${CI_REGISTRY}
+
+build:
+#  only: 
+#    - dev
+  stage: build
+  tags:
+    - hiveon.dev
+  script:
+    - docker build . -t pool-build-deps
+    - docker-compose -f pool-docker-compose.yaml build
+auto-deploy-dev:
+  only:
+    - dev
+  stage: auto-deploy-dev
+  tags:
+    - hiveon.dev
+  script:
+    - cd /opt/pool
+    - docker-compose -f pool-docker-compose.yaml up -d
+    - docker restart nginx
+manual-deploy-branch:
+   when: manual
+   stage: manual-deploy-branch
+   tags:
+    - hiveon.dev
+   script:
+    - cd /opt/pool
+    - docker-compose -f pool-docker-compose.yaml pull
+    - docker restart nginx

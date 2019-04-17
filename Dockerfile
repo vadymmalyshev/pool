@@ -13,5 +13,4 @@ RUN eval `(ssh-agent)` && \
     cd cmd/hbilling && \
     go build -o hbilling && \
     mv hbilling /pool/ && \
-    ls /pool && \
-    mv /pool/config/config.dev.yaml /pool/config/config.yaml
+    ls /pool
