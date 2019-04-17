@@ -33,5 +33,5 @@ manual-deploy-branch:
     - hiveon.dev
    script:
     - cd /opt/pool
-    - docker-compose -f pool-docker-compose.yaml pull
+    - docker-compose -f pool-docker-compose.yaml up -d
     - docker restart nginx
