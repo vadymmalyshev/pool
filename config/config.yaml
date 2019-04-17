@@ -118,3 +118,25 @@ pool:
   mapping_api: "http://127.0.0.1:8090/api/private/statistic/mapping"
   idp_api: "http://localhost:3000/api"
 
+kafka:
+  brokers: "ec2-18-197-235-102.eu-central-1.compute.amazonaws.com:9092, ec2-18-197-240-139.eu-central-1.compute.amazonaws.com:9092,ec2-18-194-140-186.eu-central-1.compute.amazonaws.com:9092"
+  ca_location: "./kafka/ca-cert"
+  username: "hiveos_eth_web_prod"
+  password: "YX7pfF3JrXACd6GK"
+  topics: "hiveos_eth_stats_prod2 hiveos_eth_stats_prod hiveos_eth_exchange_prod"
+  group_id: "hiveos_new_eu_web_prod"
+  retention: "two_hours"
+  db_name: "minerdash"
+  precision: "n"
+  mining_pools: "helsinki-pool hiveos-de-node-1 hiveos-de-node-2 sparkpool-us-node-01 sparkpool-us-node-02"
+
+telegrambot:
+  token: "789227906:AAFwe3FJvXUoO61JRg2kg-_s4VweQ7_HRv0"
+  chatID: -316538651
+
+scheduler:
+  eth_API:   "https://www.etherchain.org/api/basic_stats"
+  cny_API: "https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=CNY"
+  retention: "a_year"
+  measurement: "eth_stats"
+
