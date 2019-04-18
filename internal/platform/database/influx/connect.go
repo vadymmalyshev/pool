@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"net/url"
 
-	"git.tor.ph/hiveon/pool/internal/platform/database"
 	client "github.com/influxdata/influxdb1-client"
-	// . "github.com/influxdata/influxdb1-client/models"
 )
 
 // Connect returns initialized connection to db
-func Connect(c database.Config) (*client.Client, error) {
-	u, err := url.Parse(fmt.Sprintf("http://%s:%d", c.Host, c.Port))
+func (db *DB) Connect() (*client.Client, error) {
+	if err := db.Validate(); err != nil {
+		return nil, err
+	}
+	u, err := url.Parse(fmt.Sprintf("http://%s:%d", db.Host, db.Port))
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +22,7 @@ func Connect(c database.Config) (*client.Client, error) {
 		return nil, err
 	}
 
-	client.SetAuth(c.User, c.Pass)
+	client.SetAuth(db.User, db.Pass)
 	if _, _, err := client.Ping(); err != nil {
 		return nil, err
 	}

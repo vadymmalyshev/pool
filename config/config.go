@@ -1,100 +1,73 @@
 package config
 
 import (
-	"git.tor.ph/hiveon/pool/internal/platform/api"
-	"git.tor.ph/hiveon/pool/internal/platform/database"
-	"git.tor.ph/hiveon/pool/internal/platform/hydra"
-	"git.tor.ph/hiveon/pool/internal/platform/hydra/client"
-	"git.tor.ph/hiveon/pool/internal/platform/kafka"
-	"git.tor.ph/hiveon/pool/internal/platform/server"
+	"flag"
 	"os"
-	"path"
-	"runtime"
+
+	"github.com/mitchellh/mapstructure"
+
+	"git.tor.ph/hiveon/pool/internal/platform/hydra"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-const (
-	apiHost = "api.host"
-	apiPort = "api.port"
-)
+func YAMLUnmarshalOpt(c *mapstructure.DecoderConfig) {
+	c.TagName = "yaml"
+}
 
-const (
-	dbHost    = "admin.db.host"
-	dbPort    = "admin.db.port"
-	dbSSLMode = "admin.db.sslmode"
-	dbUser    = "admin.db.user"
-	dbPass    = "admin.db.password"
-	dbName    = "admin.db.name"
-	dbLog     = "admin.db.log"
-)
+type AdminClient struct {
+	ClientID     string `mapstructure:"admin.client_id"`
+	ClientSecret string `mapstructure:"admin.client_secret"`
+}
 
-const (
-	idpdbHost    = "idp.db.host"
-	idpdbPort    = "idp.db.port"
-	idpdbSSLMode = "idp.db.sslmode"
-	idpdbUser    = "idp.db.user"
-	idpdbPass    = "idp.db.password"
-	idpdbName    = "idp.db.name"
-	idpdbLog     = "idp.db.log"
-)
+type API struct {
+	Host string `mapstructure:"api.host"`
+	Port int    `mapstructure:"api.port"`
+}
 
-const (
-	sequelize2DBHost    = "sequelize2.host"
-	sequelize2DBPort    = "sequelize2.port"
-	sequelize2DBSSLMode = "sequelize2.sslmode"
-	sequelize2DBUser    = "sequelize2.user"
-	sequelize2DBPass    = "sequelize2.password"
-	sequelize2DBName    = "sequelize2.name"
-)
+type AdminDB struct {
+	Host    string `mapstructure:"admin.db.host"`
+	Port    int    `mapstructure:"admin.db.port"`
+	SSLMode bool   `mapstructure:"admin.db.sslmode"`
+	User    string `mapstructure:"admin.db.user"`
+	Pass    string `mapstructure:"admin.db.password"`
+	Name    string `mapstructure:"admin.db.name"`
+	Log     string `mapstructure:"admin.db.log"`
+}
 
-const (
-	sequelize3DBHost    = "sequelize3.host"
-	sequelize3DBPort    = "sequelize3.port"
-	sequelize3DBSSLMode = "sequelize3.sslmode"
-	sequelize3DBUser    = "sequelize3.user"
-	sequelize3DBPass    = "sequelize3.password"
-	sequelize3DBName    = "sequelize3.name"
-)
+// dbHost    = "admin.db.host"
+// dbPort    = "admin.db.port"
+// dbSSLMode = "admin.db.sslmode"
+// dbUser    = "admin.db.user"
+// dbPass    = "admin.db.password"
+// dbName    = "admin.db.name"
+// dbLog     = "admin.db.log"
 
-const (
-	influxHost = "influx.host"
-	influxPort = "influx.port"
-	influxUser = "influx.user"
-	influxPass = "influx.password"
-	influxName = "influx.name"
-)
+// IDP represent IDP settings
+type IDP struct {
+	Host    string `mapstructure:"idp.db.host"`
+	Port    int    `mapstructure:"idp.db.port"`
+	SSLMode bool   `mapstructure:"idp.db.sslmode"`
+	User    string `mapstructure:"idp.db.user"`
+	Pass    string `mapstructure:"idp.db.password"`
+	Name    string `mapstructure:"idp.db.name"`
+	Log     string `mapstructure:"idp.db.log"`
+}
 
-const (
-	appPort = "app.port"
-	appHost = "app.host"
-
-	hydraURL          = "hydra.url"
-	hydraClientID     = "hydra.client_id"
-	hydraClientSecret = "hydra.client_secret"
-)
-
-const (
-	kafkaBrokers     = "kafka.brokers"
-	kafkaCaLocation  = "kafka.ca_location"
-	kafkaUsername    = "kafka.username"
-	kafkaPass        = "kafka.password"
-	kafkaTopics      = "kafka.topics"
-	kafkaGroupId     = "kafka.group_id"
-	kafkaRetention   = "kafka.retention"
-	kafkaDbName      = "kafka.db_name"
-	kafkaPrecision   = "kafka.precision"
-	kafkaMiningPools = "kafka.mining_pools"
-)
+// kafkaBrokers     = "kafka.brokers"
+// kafkaCaLocation  = "kafka.ca_location"
+// kafkaUsername    = "kafka.username"
+// kafkaPass        = "kafka.password"
+// kafkaTopics      = "kafka.topics"
+// kafkaGroupId     = "kafka.group_id"
+// kafkaRetention   = "kafka.retention"
+// kafkaDbName      = "kafka.db_name"
+// kafkaPrecision   = "kafka.precision"
+// kafkaMiningPools = "kafka.mining_pools"
 
 // AdminPrefix represents url prefix for admin panel
 const AdminPrefix = "/admin"
-
-type admin struct {
-	Server      server.Config
-	HydraClient hydraclient.Config
-}
 
 var (
 	AuthSignKey                                                                               string
@@ -105,53 +78,59 @@ var (
 	UseCasbin                                                                                 bool
 	WorkerOfflineMin                                                                          int
 	DefaultPercentage                                                                         float64
-	Redis                                                                                     database.Config
-	DB, IDPDB, Sequelize2DB, Sequelize3DB, InfluxDB                                           database.Config
-	Kafka																					  kafka.Config
 
 	DBConn, IDPDBConn string
 
-	Admin admin
 	Hydra hydra.Config
-
-	API api.Config
 )
 
+var configPathFlag = *flag.String("c", "", "config file name from config directory")
+var configPathEnv = os.Getenv("HIVEON_POOL_CONFIG")
+
 func init() {
-	_, filename, _, _ := runtime.Caller(0)
-	hiveonPoolDir := path.Join(path.Dir(filename), "..")
 
-	os.Setenv("HIVEON_POOL", hiveonPoolDir)
-
-	viper.AddConfigPath("$HOME/config")
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath("$HIVEON_ADMIN_CONFIG_DIR/")
 	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()
-	viper.SetConfigName("config")
+
+	if configPathFlag != "" {
+		viper.SetConfigFile(configPathFlag)
+	} else if configPathEnv != "" {
+		viper.SetConfigFile(configPathEnv)
+	} else {
+		viper.AddConfigPath("$HOME/config")
+		viper.AddConfigPath("./")
+		viper.AddConfigPath("./config")
+		viper.AddConfigPath("$HIVEON_ADMIN_CONFIG_DIR/")
+
+		viper.SetConfigName("config")
+	}
 
 	// Find and read the config file
 	if err := viper.ReadInConfig(); err != nil { // Handle errors reading the config file
-		logrus.Panicf("Fatal error config file: %s", err)
+		logrus.Panicf("fatal error config file: %s", err)
 	}
 
-	Admin.Server = server.Config{
-		Host: viper.GetString("admin.host"),
-		Port: viper.GetInt("admin.port"),
-	}
-	if err := Admin.Server.Validate(); err != nil {
-		logrus.Panicf("Admin server configuration error: %s", err)
+	if err := viper.Unmarshal(&Config, YAMLUnmarshalOpt); err != nil {
+		logrus.Panicf("error while unmarshal viper config: %s", err)
+		return
 	}
 
-	Admin.HydraClient = hydraclient.Config{
-		ClientID:     viper.GetString("admin.client_id"),
-		ClientSecret: viper.GetString("admin.client_secret"),
-		CallbackURL:  viper.GetString("admin.callback"),
-	}
-	if err := Admin.HydraClient.Validate(); err != nil {
-		logrus.Panicf("Admin server configuration error: %s", err)
-	}
+	// Admin.Server = server.Config{
+	// 	Host: viper.GetString("admin.host"),
+	// 	Port: viper.GetInt("admin.port"),
+	// }
+	// if err := Admin.Server.Validate(); err != nil {
+	// 	logrus.Panicf("Admin server configuration error: %s", err)
+	// }
+
+	// Admin.HydraClient = hydraclient.Config{
+	// 	ClientID:     viper.GetString("admin.client_id"),
+	// 	ClientSecret: viper.GetString("admin.client_secret"),
+	// 	CallbackURL:  viper.GetString("admin.callback"),
+	// }
+	// if err := Admin.HydraClient.Validate(); err != nil {
+	// 	logrus.Panicf("Admin server configuration error: %s", err)
+	// }
 
 	AuthSignKey = viper.GetString("auth.sign_key")
 
@@ -184,79 +163,60 @@ func init() {
 	// influx
 	AuthSignKey = viper.GetString("auth.sign_key")
 
-	Redis = database.Config{
-		Host: viper.GetString("redis.host"),
-		Port: viper.GetInt("redis.port"),
-		Name: viper.GetString("redis.db"),
-		Pass: viper.GetString("redis.password"),
-	}
-	if err := Redis.Validate(); err != nil {
-		logrus.Panicf("Redis configuration error: %s", err)
-	}
+	// if err := Redis.Validate(); err != nil {
+	// 	logrus.Panicf("Redis configuration error: %s", err)
+	// }
 
-	DB = database.Config{
-		Host:      viper.GetString(dbHost),
-		Port:      viper.GetInt(dbPort),
-		EnableSSL: viper.GetBool(dbSSLMode),
-		User:      viper.GetString(dbUser),
-		Pass:      viper.GetString(dbPass),
-		Name:      viper.GetString(dbName),
-		EnableLog: viper.GetBool(dbLog),
-	}
+	// DB = database.Config{
+	// 	Host:      viper.GetString(dbHost),
+	// 	Port:      viper.GetInt(dbPort),
+	// 	EnableSSL: viper.GetBool(dbSSLMode),
+	// 	User:      viper.GetString(dbUser),
+	// 	Pass:      viper.GetString(dbPass),
+	// 	Name:      viper.GetString(dbName),
+	// 	EnableLog: viper.GetBool(dbLog),
+	// }
 
-	IDPDB = database.Config{
-		Host:      viper.GetString(idpdbHost),
-		Port:      viper.GetInt(idpdbPort),
-		EnableSSL: viper.GetBool(idpdbSSLMode),
-		User:      viper.GetString(idpdbUser),
-		Pass:      viper.GetString(idpdbPass),
-		Name:      viper.GetString(idpdbName),
-		EnableLog: viper.GetBool(idpdbLog),
-	}
+	// IDPDB = database.Config{
+	// 	Host:      viper.GetString(idpdbHost),
+	// 	Port:      viper.GetInt(idpdbPort),
+	// 	EnableSSL: viper.GetBool(idpdbSSLMode),
+	// 	User:      viper.GetString(idpdbUser),
+	// 	Pass:      viper.GetString(idpdbPass),
+	// 	Name:      viper.GetString(idpdbName),
+	// 	EnableLog: viper.GetBool(idpdbLog),
+	// }
 
-	Sequelize2DB = database.Config{
-		Host:      viper.GetString(sequelize2DBHost),
-		Port:      viper.GetInt(sequelize2DBPort),
-		EnableSSL: viper.GetBool(sequelize2DBSSLMode),
-		User:      viper.GetString(sequelize2DBUser),
-		Pass:      viper.GetString(sequelize2DBPass),
-		Name:      viper.GetString(sequelize2DBName),
-	}
+	// Sequelize2DB = database.Config{
+	// 	Host:      viper.GetString(sequelize2DBHost),
+	// 	Port:      viper.GetInt(sequelize2DBPort),
+	// 	EnableSSL: viper.GetBool(sequelize2DBSSLMode),
+	// 	User:      viper.GetString(sequelize2DBUser),
+	// 	Pass:      viper.GetString(sequelize2DBPass),
+	// 	Name:      viper.GetString(sequelize2DBName),
+	// }
 
-	Sequelize3DB = database.Config{
-		Host:      viper.GetString(sequelize3DBHost),
-		Port:      viper.GetInt(sequelize3DBPort),
-		EnableSSL: viper.GetBool(sequelize3DBSSLMode),
-		User:      viper.GetString(sequelize3DBUser),
-		Pass:      viper.GetString(sequelize3DBPass),
-		Name:      viper.GetString(sequelize3DBName),
-	}
+	// Sequelize3DB = database.Config{
+	// 	Host:      viper.GetString(sequelize3DBHost),
+	// 	Port:      viper.GetInt(sequelize3DBPort),
+	// 	EnableSSL: viper.GetBool(sequelize3DBSSLMode),
+	// 	User:      viper.GetString(sequelize3DBUser),
+	// 	Pass:      viper.GetString(sequelize3DBPass),
+	// 	Name:      viper.GetString(sequelize3DBName),
+	// }
 
-	InfluxDB = database.Config{
-		Host: viper.GetString(influxHost),
-		Port: viper.GetInt(influxPort),
-		User: viper.GetString(influxUser),
-		Pass: viper.GetString(influxPass),
-		Name: viper.GetString(influxName),
-	}
+	// InfluxDB = database.Config{
+	// 	Host: viper.GetString(influxHost),
+	// 	Port: viper.GetInt(influxPort),
+	// 	User: viper.GetString(influxUser),
+	// 	Pass: viper.GetString(influxPass),
+	// 	Name: viper.GetString(influxName),
+	// }
 
-	API = api.Config{
-		Host: viper.GetString(apiHost),
-		Port: viper.GetInt(apiPort),
-	}
-
-	Kafka = kafka.Config{
-		KafkaBrokers: viper.GetString(kafkaBrokers),
-		KafkaCaLocation: viper.GetString(kafkaCaLocation),
-		KafkaUsername: viper.GetString(kafkaUsername),
-		KafkaPass: viper.GetString(kafkaPass),
-		KafkaTopics: viper.GetString(kafkaTopics),
-		KafkaGroupId: viper.GetString(kafkaGroupId),
-		KafkaRetention: viper.GetString(kafkaRetention),
-		KafkaDbName: viper.GetString(kafkaDbName),
-		KafkaPrecision: viper.GetString(kafkaPrecision),
-		KafkaMiningPools: viper.GetString(kafkaMiningPools),
-	}
+	// API = api.Config{
+	// 	Host: viper.GetString(apiHost),
+	// 	Port: viper.GetInt(apiPort),
+	// }
 }
 
 func checkValueEmpty(val string) {

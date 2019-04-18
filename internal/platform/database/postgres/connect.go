@@ -2,35 +2,51 @@ package postgres
 
 import (
 	"fmt"
+	"sync"
 
-	"git.tor.ph/hiveon/pool/internal/platform/database"
+	"github.com/sirupsen/logrus"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres" // blank import is used here for simplicity
+
+	// blank import is used here for simplicity
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+var dbOnce sync.Once
+var pointerDB *gorm.DB
+
 // Connect returns initialized connection to db
-func Connect(c database.Config) (*gorm.DB, error) {
-	db, err := gorm.Open("postgres", Connection(c))
-	if err != nil {
-		return nil, err
-	}
+func (db *DB) Connect() (*gorm.DB, error) {
 
-	db.LogMode(c.EnableLog)
+	dbOnce.Do(func() {
+		if err := db.Validate(); err != nil {
+			logrus.Panic("failed to initialize db: ", err.Error())
+			return
+		}
 
-	return db, nil
+		pointerDB, err := gorm.Open("postgres", db.Connection())
+		if err != nil {
+			logrus.Panic("failed to initialize db: ", err.Error())
+			return
+		}
+
+		pointerDB.LogMode(db.Log)
+	})
+
+	return pointerDB, nil
 }
 
-func Connection(c database.Config) string {
+// Connection represents connection string
+func (db *DB) Connection() string {
 	ssl := "disable"
-	if c.EnableSSL {
+	if db.SSLMode {
 		ssl = "enable"
 	}
 	return fmt.Sprintf("host=%s port=%d sslmode=%s user=%s dbname=%s password=%s ",
-		c.Host,
-		c.Port,
+		db.Host,
+		db.Port,
 		ssl,
-		c.User,
-		c.Name,
-		c.Pass)
+		db.User,
+		db.Name,
+		db.Pass)
 }

@@ -11,8 +11,6 @@ import (
 	"git.tor.ph/hiveon/pool/config"
 	internalAdmin "git.tor.ph/hiveon/pool/internal/admin"
 	"git.tor.ph/hiveon/pool/internal/casbin"
-	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/models"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +38,7 @@ var cmdMigrate = &cobra.Command{
 }
 
 func doMigrate(cmd *cobra.Command, args []string) {
-	db, err := postgres.Connect(config.DB)
+	db, err := config.Config.Admin.DB.Connect()
 
 	if err != nil {
 		logrus.Panicf("failed to init db: %s", err)
@@ -54,7 +52,7 @@ func doMigrate(cmd *cobra.Command, args []string) {
 		logrus.Panicf("something went wrong: %s", err)
 	}
 
-	idpDB, err := postgres.Connect(config.IDPDB)
+	idpDB, err := config.Config.IDP.DB.Connect()
 
 	if err != nil {
 		logrus.Panicf("failed to init db: %s", err)
@@ -72,20 +70,19 @@ func addAdmin(cmd *cobra.Command, args []string) {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
-	db, err := postgres.Connect(config.DB)
-	fmt.Println(config.DB)
+	db, err := config.Config.Admin.DB.Connect()
 
 	if err != nil {
 		logrus.Panicf("failed to init hiveon db: %s", err)
 	}
 
-	idpdb, err := postgres.Connect(config.IDPDB)
+	idpdb, err := config.Config.IDP.DB.Connect()
 
 	if err != nil {
 		logrus.Panicf("failed to init idp db: %s", err)
 	}
 
-	seq2, err := mysql.Connect(config.Sequelize2DB)
+	seq2, err := config.Config.SQL2.Connect()
 
 	if err != nil {
 		logrus.Panicf("failed to init seq2 db: %s", err)
@@ -112,9 +109,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	errs := make(chan error, 2)
 
 	go func() {
-		logrus.Infof("Hiveon Admin has started on https://%s", config.Admin.Server.Addr())
+		logrus.Infof("Hiveon Admin has started on https://%s", config.Config.Admin.Addr())
 		//errs <- r.RunTLS(config.Admin.Server.Addr(), config.Admin.Server.CertFile, config.Admin.Server.KeyFile)
-		errs <- r.Run(config.Admin.Server.Addr())
+		errs <- r.Run(config.Config.Admin.Addr())
 	}()
 
 	go func() {
