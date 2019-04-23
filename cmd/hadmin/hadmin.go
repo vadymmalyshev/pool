@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -73,13 +74,13 @@ func runServer(cmd *cobra.Command, args []string) {
 	db, err := config.Config.Admin.DB.Connect()
 
 	if err != nil {
-		logrus.Panicf("failed to init hiveon db: %s", err)
+		logrus.Panicf("failed to init Admin DB: %s", err)
 	}
 
 	idpdb, err := config.Config.IDP.DB.Connect()
 
 	if err != nil {
-		logrus.Panicf("failed to init idp db: %s", err)
+		logrus.Panicf("failed to init IDP DB: %s", err)
 	}
 
 	seq2, err := config.Config.SQL2.Connect()
@@ -109,9 +110,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	errs := make(chan error, 2)
 
 	go func() {
-		logrus.Infof("Hiveon Admin has started on https://%s", config.Config.Admin.Addr())
+		logrus.Infof("Hiveon Admin has started on https://%s", config.Config.Admin.Server.Addr())
 		//errs <- r.RunTLS(config.Admin.Server.Addr(), config.Admin.Server.CertFile, config.Admin.Server.KeyFile)
-		errs <- r.Run(config.Config.Admin.Addr())
+		errs <- r.Run(config.Config.Admin.Server.Addr())
 	}()
 
 	go func() {
@@ -126,10 +127,12 @@ func runServer(cmd *cobra.Command, args []string) {
 const secret = "33446a9dcf9ea060a0a6532b166da32f304af0de"
 
 func init() {
+	flag.Parse()
 	cmdRoot.AddCommand(cmdMigrate)
 }
 
 func main() {
+
 	if err := cmdRoot.Execute(); err != nil {
 		logrus.Infof("can't run admin server: %s", err)
 		os.Exit(1)

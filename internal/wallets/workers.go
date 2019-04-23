@@ -42,7 +42,7 @@ func GetWorkersPulse(redisClient red.Conn, walletID string) (result map[string]W
 		}
 
 		timeStamp := time.Unix(ts/tsToSec, 0)
-		isOnline := timeStamp.After(time.Now().Add(-time.Duration(config.WorkerOfflineMin) * time.Minute))
+		isOnline := timeStamp.After(time.Now().Add(-time.Duration(config.Config.Pool.Workers.OfflineAfter) * time.Minute))
 
 		result[k] = WorkerPulse{
 			Name:     k,

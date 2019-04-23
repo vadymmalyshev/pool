@@ -14,11 +14,16 @@ import (
 // Config represent all of the settings
 var Config common
 
+type zoomAndTime struct {
+	Period string `yaml:"period"`
+	Zoom   string `yaml:"zoom"`
+}
+
 type common struct {
 	Admin struct {
-		serv.Config `yaml:",inline"`
-		Client      hydraclient.Config `yaml:",inline"`
-		DB          postgres.DB        `yaml:"db"`
+		Server serv.Config        `yaml:",squash"`
+		Client hydraclient.Config `yaml:",squash"`
+		DB     postgres.DB        `yaml:"db"`
 	} `yaml:"admin"`
 	SQL2     mysql.DB     `yaml:"sequelize2"`
 	SQL3     mysql.DB     `yaml:"sequelize3"`
@@ -27,12 +32,24 @@ type common struct {
 	Redis    redis.DB     `yaml:"redis"`
 	Hydra    hydra.Config `yaml:"hydra"`
 	IDP      struct {
-		Client hydraclient.Config
+		Client hydraclient.Config `yaml:",squash"`
 		DB     postgres.DB
 	} `yaml:"idp"`
-	WorkersAPI string `yaml:"pool.workers_api"`
-	MappingAPI string `yaml:"pool.mapping_api"`
-	IdpAPI     string `yaml:"pool.idp_api"`
+	Pool struct {
+		WorkersAPI string      `yaml:"workers_api"`
+		MappingAPI string      `yaml:"mapping_api"`
+		IdpAPI     string      `yaml:"idp_api"`
+		Shares     zoomAndTime `yaml:"shares"`
+		Zoom       string      `yaml:"zoom"`
+		Blocks     struct {
+			Period string `yaml:"period"`
+		} `yaml:"blocks"`
+		Workers struct {
+			zoomAndTime  `yaml:",squash"`
+			OfflineAfter string `yaml:"offline_after"`
+			State        string `yaml:"state"`
+		} `yaml:"shares"`
+	} `yaml:"pool"`
 }
 
 // Scheduler represents settings for consumer scheduler

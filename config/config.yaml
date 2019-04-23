@@ -34,8 +34,8 @@ idp:
   callback: "https://id.hiveon.local:3000/callback"
   db:
     host: "localhost"
-    port: "54320"
-    name: "idp_dev"
+    port: 5432
+    name: "idp"
     user: "idp"
     sslmode: false
     password: "8GWbz2JF4FMe1Q8X"
@@ -43,7 +43,7 @@ idp:
 portal:
   port: 3001
   host: "hiveon.local"
-  callback: "https://hiveon.local:8080"
+  callback: "https://hiveon.localhost:8080"
   client_id: "portal"
   client_secret: "portal-secret"
 
@@ -53,20 +53,20 @@ api:
 
 admin:
   port: 3002
-  host: "admin.local"
+  host: "hiveon.localhost"
   client_id: "admin"
   client_secret: "admin-secret"    
-  callback: "https://admin.local:3002/callback"
+  callback: "http://hiveon.localhost:3002/callback"
   certs:
     key: "$HIVEON_POOL/config/certs/admin.local.key"
     pem: "$HIVEON_POOL/config/certs/admin.local.pem"
   db:
-    host: "116.203.56.122"
+    host: "localhost"
     port: 5432
     name: "oauth"
-    user: "postgres"
+    user: "idp"
     sslmode: false
-    password: "postgres"
+    password: "8GWbz2JF4FMe1Q8X"
 
 auth:
   sign_key: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"
@@ -92,31 +92,24 @@ redis:
 
 remember_for: 360000
 
-app:
-  config:
-    pool:
-      workerState: 20m
-      pgOneDay: "26 hour"
-      poolZoom: "25h"
-      hashrate:
-        hashrateCul: 4000000000
-        hashrateCulDivider: 1200
-ZOOM_CONFIG:
-  d:
-    time: "25h"
-    zoom: "20m"
-
-WORKER_STAT_CONFIG:
-  d:
-    time: "25h"
-    zoom: "5m"
-    workerOfflineMin: 1m
-  defaultPercentage: 0.03
-
+    
 pool:
   workers_api: "http://127.0.0.1:8090/api/private/statistic/workers"
   mapping_api: "http://127.0.0.1:8090/api/private/statistic/mapping"
   idp_api: "http://localhost:3000/api"
+  zoom: "25h"
+  blocks:
+    period: "26 hour"
+  shares:
+    period: "25h"
+    zoom: "20m"
+  workers:
+    period: "24h"
+    zoom: "5m"
+    state: "20m"
+    offline_after: 1m
+    
+
 
 kafka:
   brokers: "ec2-18-197-235-102.eu-central-1.compute.amazonaws.com:9092, ec2-18-197-240-139.eu-central-1.compute.amazonaws.com:9092,ec2-18-194-140-186.eu-central-1.compute.amazonaws.com:9092"

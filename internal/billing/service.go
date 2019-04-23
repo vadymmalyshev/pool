@@ -157,7 +157,7 @@ func (b BillingCalculator) calculateAndSaveCommission(stat models.BillingWorkerS
 	BTC := roundFloat(hashrate_ * rates["btc"])
 	CNY := roundFloat(hashrate_ * rates["cny"])
 
-	Commission := roundFloat(USD * config.DefaultPercentage)
+	Commission := roundFloat(USD * config.Config.Pool.Devfee)
 	workerCommission := models.BillingWorkerMoney{Hashrate: hashrate, USD: USD, BTC: BTC, CNY: CNY, CommissionUSD: Commission, Worker: *worker}
 
 	return b.BillingRepo.SaveWorkerMoney(workerCommission)

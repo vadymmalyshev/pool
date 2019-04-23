@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/sirupsen/logrus"
+	"github.com/pkg/errors"
 
 	"github.com/jinzhu/gorm"
 
@@ -17,23 +17,31 @@ var pointerDB *gorm.DB
 
 // Connect returns initialized connection to db
 func (db *DB) Connect() (*gorm.DB, error) {
-
+	var (
+		pointerDB *gorm.DB
+		dbErr     error
+	)
 	dbOnce.Do(func() {
-		if err := db.Validate(); err != nil {
-			logrus.Panic("failed to initialize db: ", err.Error())
+		var err error
+
+		if err = db.Validate(); err != nil {
+			dbErr = errors.Wrap(err, "failed to validate db config")
 			return
 		}
 
-		pointerDB, err := gorm.Open("postgres", db.Connection())
-		if err != nil {
-			logrus.Panic("failed to initialize db: ", err.Error())
+		if pointerDB, err = gorm.Open("postgres", db.Connection()); err != nil {
+			dbErr = errors.Wrap(err, "failed to initialize db")
 			return
 		}
-
-		pointerDB.LogMode(db.Log)
 	})
 
-	return pointerDB, nil
+	if dbErr == nil {
+		pointerDB.LogMode(db.Log)
+	} else {
+		dbOnce = *new(sync.Once)
+	}
+
+	return pointerDB, dbErr
 }
 
 // Connection represents connection string
