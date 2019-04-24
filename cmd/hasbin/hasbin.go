@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/casbin"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -17,7 +16,7 @@ func main() {
 	sync, err := casbin.NewSynchronizer(config.DB, config.Redis)
 
 	if err != nil {
-		logrus.Panicf("can't start synchronizer: %s", err)
+		log.Panicf("can't start synchronizer: %s", err)
 		errs <- err
 	}
 

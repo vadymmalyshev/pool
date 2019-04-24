@@ -2,16 +2,16 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	. "git.tor.ph/hiveon/pool/internal/income"
+	incomeRepository "git.tor.ph/hiveon/pool/internal/income"
 	"github.com/gin-gonic/gin"
 )
 
 type IncomeAPI struct {
-	incomeService IncomeServicer
+	incomeService incomeRepository.IncomeServicer
 }
 
 func NewIncomeAPI() *IncomeAPI {
-	return &IncomeAPI{incomeService: NewIncomeService()}
+	return &IncomeAPI{incomeService: incomeRepository.NewIncomeService()}
 }
 
 // Handle GET /api/pool/block/count24h

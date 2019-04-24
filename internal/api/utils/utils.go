@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	. "github.com/influxdata/influxdb1-client/models"
+	influx "github.com/influxdata/influxdb1-client/models"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"strings"
@@ -41,11 +41,11 @@ func FormatTimeToRFC3339(inputTime string) string {
 	return rfcTime.Format(time.RFC3339)
 }
 
-func GetRowStringValue(row Row, index int, columnName string) string {
+func GetRowStringValue(row influx.Row, index int, columnName string) string {
 	return GetRowValue(row, index, columnName).(string)
 }
 
-func GetRowFloatValue(row Row, index int, columnName string) float64 {
+func GetRowFloatValue(row influx.Row, index int, columnName string) float64 {
 	res, err := GetRowValue(row, index, columnName).(json.Number).Float64()
 	if err != nil {
 		return 0
@@ -54,7 +54,7 @@ func GetRowFloatValue(row Row, index int, columnName string) float64 {
 }
 
 //return zero in case of any inconsistencies
-func GetRowValue(row Row, index int, columnName string) interface{} {
+func GetRowValue(row influx.Row, index int, columnName string) interface{} {
 	if row.Values[index] == nil {
 		return 0
 	}
@@ -71,7 +71,7 @@ func GetRowValue(row Row, index int, columnName string) interface{} {
 	return json.Number(0)
 }
 
-func getIndexByColumnName(row Row, columnName string) (int, error) {
+func getIndexByColumnName(row influx.Row, columnName string) (int, error) {
 
 	for i, name := range row.Columns {
 		if name == columnName {
@@ -81,20 +81,19 @@ func getIndexByColumnName(row Row, columnName string) (int, error) {
 	return 0, errors.New(fmt.Sprintf("Column with name %s hasn't been found", columnName))
 }
 
-
-func RoundFloat2(value float64) float64{
-	return float64(int(value *100))/100
+func RoundFloat2(value float64) float64 {
+	return float64(int(value*100)) / 100
 }
 
 func FormatWalletID(wallet string) string {
 	s := strings.ToLower(wallet)
-	if (strings.HasPrefix(s, "0xwallet")) {
-		strings.Replace(wallet,"0xwallet","wallet",1)
+	if strings.HasPrefix(s, "0xwallet") {
+		strings.Replace(wallet, "0xwallet", "wallet", 1)
 	}
 	return s
 }
 
 func FormatWorkerName(name string) string {
-	splitted_string := strings.Split(name,"#id")
+	splitted_string := strings.Split(name, "#id")
 	return splitted_string[0]
 }

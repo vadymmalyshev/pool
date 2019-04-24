@@ -2,8 +2,8 @@ package utils
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"strings"
-	"github.com/sirupsen/logrus"
 )
 
 func ParseJSON(row string, replace bool) map[string]interface{} {
@@ -17,7 +17,7 @@ func ParseJSON(row string, replace bool) map[string]interface{} {
 
 	err := json.Unmarshal([]byte(row), &f)
 	if err != nil {
-		logrus.Error(err)
+		log.Error(err)
 	}
 
 	for k, v := range f {

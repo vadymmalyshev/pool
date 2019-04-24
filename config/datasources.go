@@ -5,18 +5,18 @@ import (
 	"git.tor.ph/hiveon/pool/internal/platform/database/mysql"
 	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"github.com/go-redis/redis"
-	"github.com/jinzhu/gorm"
-	"github.com/influxdata/influxdb1-client"
 	red "github.com/go-redis/redis"
+	"github.com/influxdata/influxdb1-client"
+	"github.com/jinzhu/gorm"
 	"log"
 	"strconv"
 )
 
 var (
 	Seq2, Seq3, Postgres *gorm.DB
-	Influx *client.Client
-	Red    *redis.Client
-	err error
+	Influx               *client.Client
+	Red                  *redis.Client
+	err                  error
 )
 
 func init() {

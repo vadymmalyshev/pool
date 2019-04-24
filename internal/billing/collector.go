@@ -2,8 +2,8 @@ package billing
 
 import (
 	"fmt"
-	"time"
 	"git.tor.ph/hiveon/pool/models"
+	"time"
 )
 
 const timeLayout = "02.01.2006"

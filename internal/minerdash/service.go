@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/config"
-	. "git.tor.ph/hiveon/pool/internal/accounting"
-	. "git.tor.ph/hiveon/pool/internal/api/utils"
-	. "git.tor.ph/hiveon/pool/internal/income"
-	. "git.tor.ph/hiveon/pool/internal/redis"
-	. "github.com/influxdata/influxdb1-client/models"
+	"git.tor.ph/hiveon/pool/internal/accounting"
+	"git.tor.ph/hiveon/pool/internal/api/utils"
+	"git.tor.ph/hiveon/pool/internal/income"
+	"git.tor.ph/hiveon/pool/internal/redis"
+	influx "github.com/influxdata/influxdb1-client/models"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 	"math"
@@ -38,19 +38,19 @@ type MinerServicer interface {
 }
 
 type minerService struct {
-	incomeRepository     IncomeRepositorer
+	incomeRepository     income.IncomeRepositorer
 	minerdashRepository  MinerdashRepositorer
-	accountingRepository AccointingRepositorer
-	redisRepository      RedisRepositorer
+	accountingRepository accounting.AccointingRepositorer
+	redisRepository      redis.RedisRepositorer
 }
 
 func NewMinerService() MinerServicer {
-	return &minerService{incomeRepository: NewIncomeRepository(config.Seq3), minerdashRepository: NewMinerdashRepository(config.Influx),
-		accountingRepository: NewAccountingRepository(config.Seq2), redisRepository: NewRedisRepository(config.Red)}
+	return &minerService{incomeRepository: income.NewIncomeRepository(config.Seq3), minerdashRepository: NewMinerdashRepository(config.Influx),
+		accountingRepository: accounting.NewAccountingRepository(config.Seq2), redisRepository: redis.NewRedisRepository(config.Red)}
 }
 
 // for mockBlockRepo testing
-func NewMinerServiceWithRepo(incomeRepository IncomeRepositorer, minerdashRepository MinerdashRepositorer, accountingRepository AccointingRepositorer, redisRepository RedisRepositorer) MinerServicer {
+func NewMinerServiceWithRepo(incomeRepository income.IncomeRepositorer, minerdashRepository MinerdashRepositorer, accountingRepository accounting.AccointingRepositorer, redisRepository redis.RedisRepositorer) MinerServicer {
 	return &minerService{incomeRepository: incomeRepository, minerdashRepository: minerdashRepository, accountingRepository: accountingRepository, redisRepository: redisRepository}
 }
 
@@ -81,7 +81,7 @@ func (m *minerService) GetBillInfo(walletId string) (BillInfo, error) {
 	if err != nil {
 		return BillInfo{}, err
 	}
-	return BillInfo{Balance: bill.Balance, FirstTime: FormatTimeToRFC3339(bill.FirstTime),
+	return BillInfo{Balance: bill.Balance, FirstTime: utils.FormatTimeToRFC3339(bill.FirstTime),
 		FirstPaid: bill.FirstPaid, TotalPaid: bill.TotalPaid}, nil
 }
 
@@ -102,7 +102,7 @@ func (m *minerService) GetBill(walletId string) (Bill, error) {
 		if r.Status == "9000" {
 			r.Status = "SUCCESS"
 		}
-		r.Time = FormatTimeToRFC3339(r.Time)
+		r.Time = utils.FormatTimeToRFC3339(r.Time)
 		bills = append(bills, r)
 	}
 	if bills == nil {
@@ -218,7 +218,7 @@ func (m *minerService) GetIndex() (PoolData, error) {
 
 	poolData := PoolData{Code: 200}
 
-	if !reflect.DeepEqual(hashRate, Row{}) {
+	if !reflect.DeepEqual(hashRate, influx.Row{}) {
 		poolData.Data.Hashrate.Time = hashRate.Values[0][0].(string)
 		validShares := hashRate.Values[0][1]
 		if validShares != nil {
@@ -234,7 +234,7 @@ func (m *minerService) GetIndex() (PoolData, error) {
 		}
 	}
 
-	if !reflect.DeepEqual(miner, Row{}) {
+	if !reflect.DeepEqual(miner, influx.Row{}) {
 		poolData.Data.Miner.Time = miner.Values[0][0].(string)
 		minerCount, _ := miner.Values[0][1].(json.Number).Float64()
 		val := math.Round(minerCount/1000*10) / 10
@@ -244,7 +244,7 @@ func (m *minerService) GetIndex() (PoolData, error) {
 		poolData.Data.Miner.Count = val
 	}
 
-	if !reflect.DeepEqual(worker, Row{}) {
+	if !reflect.DeepEqual(worker, influx.Row{}) {
 		poolData.Data.Worker.Time = worker.Values[0][0].(string)
 		workerCount, _ := worker.Values[0][1].(json.Number).Float64()
 		val := math.Round(workerCount/1000*10) / 10
@@ -276,22 +276,22 @@ func (m *minerService) getLatestWorker(walletID string) (Workers, error) {
 	workersMap := make(map[string]Worker)
 	for _, w := range workers.Series {
 		worker := Worker{}
-		worker.Rig = FormatWorkerName(w.Tags["rig"])
-		worker.Time = GetRowStringValue(w, 0, "time")
-		worker.ValidShares = GetRowFloatValue(w, 0, "validShares")
-		worker.InvalidShares = GetRowFloatValue(w, 0, "invalidShares")
-		worker.StaleShares = GetRowFloatValue(w, 0, "staleShares")
+		worker.Rig = utils.FormatWorkerName(w.Tags["rig"])
+		worker.Time = utils.GetRowStringValue(w, 0, "time")
+		worker.ValidShares = utils.GetRowFloatValue(w, 0, "validShares")
+		worker.InvalidShares = utils.GetRowFloatValue(w, 0, "invalidShares")
+		worker.StaleShares = utils.GetRowFloatValue(w, 0, "staleShares")
 		workersMap[worker.Rig] = worker
 	}
 
 	workers1dMap := make(map[string]Worker)
 	for _, w := range workers1dHashrate.Series {
 		worker := Worker{}
-		worker.Rig = FormatWorkerName(w.Tags["rig"])
-		worker.Time = GetRowStringValue(w, 0, "time")
-		worker.ValidShares = GetRowFloatValue(w, 0, "validShares")
-		worker.InvalidShares = GetRowFloatValue(w, 0, "invalidShares")
-		worker.MeanLocalHashrate1d = GetRowFloatValue(w, 0, "localHashrate")
+		worker.Rig = utils.FormatWorkerName(w.Tags["rig"])
+		worker.Time = utils.GetRowStringValue(w, 0, "time")
+		worker.ValidShares = utils.GetRowFloatValue(w, 0, "validShares")
+		worker.InvalidShares = utils.GetRowFloatValue(w, 0, "invalidShares")
+		worker.MeanLocalHashrate1d = utils.GetRowFloatValue(w, 0, "localHashrate")
 
 		workers1dMap[worker.Rig] = worker
 	}
@@ -310,7 +310,7 @@ func (m *minerService) getLatestWorker(walletID string) (Workers, error) {
 		}
 
 		worker := Worker{}
-		worker.Rig = FormatWorkerName(k)
+		worker.Rig = utils.FormatWorkerName(k)
 		worker.Time = timeStamp.Format(time.RFC3339)
 		worker.ValidShares = workersMap[k].ValidShares
 		worker.StaleShares = workersMap[k].StaleShares
@@ -378,11 +378,11 @@ func (m *minerService) CalcWorkersStat(walletID string, workerID string) (Worker
 	for _, v := range workers.Series {
 		for in, _ := range v.Values {
 			worker := Worker{}
-			worker.Rig = FormatWorkerName(v.Tags["rig"])
-			worker.Time = GetRowStringValue(v, in, "time")
-			worker.ValidShares = GetRowFloatValue(v, in, "validShares")
-			worker.InvalidShares = GetRowFloatValue(v, in, "invalidShares")
-			worker.StaleShares = GetRowFloatValue(v, in, "staleShares")
+			worker.Rig = utils.FormatWorkerName(v.Tags["rig"])
+			worker.Time = utils.GetRowStringValue(v, in, "time")
+			worker.ValidShares = utils.GetRowFloatValue(v, in, "validShares")
+			worker.InvalidShares = utils.GetRowFloatValue(v, in, "invalidShares")
+			worker.StaleShares = utils.GetRowFloatValue(v, in, "staleShares")
 			workersList = append(workersList, worker)
 		}
 	}
@@ -423,7 +423,7 @@ func createWorkerStatistic(v string, validSharesSum float64, invalidSharesSum fl
 	workerStat.ValidShares = math.Round(validSharesSum)
 	workerStat.InvalidShares = math.Round(invalidSharesSum)
 	workerStat.StaleShares = math.Round(staleSharesSum)
-	workerStat.ActivityPercentage = RoundFloat2(percentage)
+	workerStat.ActivityPercentage = utils.RoundFloat2(percentage)
 	*workerStatisticList = append(*workerStatisticList, workerStat)
 }
 
@@ -449,8 +449,8 @@ func calcMeanHashrate(sharesDetails *[]SharesDetail) {
 		numCount float64
 	)
 	beginIsZero := true
-	hashrate := GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
-		GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
+	hashrate := utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
+		utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
 
 	for i := range *sharesDetails {
 		if !beginIsZero || (*sharesDetails)[i].ValidShares > 0 || (*sharesDetails)[i].InvalidShares > 0 {
@@ -472,8 +472,8 @@ func calcMeanHashrate(sharesDetails *[]SharesDetail) {
 }
 
 func (m *minerService) CalcHashrate(count float64) float64 {
-	hashRateCul := GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
-		GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
+	hashRateCul := utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
+		utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
 
 	result := math.Round(hashRateCul * count)
 	if math.IsNaN(result) {

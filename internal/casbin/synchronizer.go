@@ -2,16 +2,16 @@ package casbin
 
 import (
 	"fmt"
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
-	"time"
 	"git.tor.ph/hiveon/pool/internal/auth"
 	"git.tor.ph/hiveon/pool/internal/platform/database"
+	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/internal/platform/database/redis"
 	"github.com/casbin/casbin"
 	gormadapter "github.com/casbin/gorm-adapter"
 	redisadapter "github.com/casbin/redis-adapter"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/robfig/cron"

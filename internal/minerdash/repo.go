@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	. "github.com/influxdata/influxdb1-client/models"
+	influx "github.com/influxdata/influxdb1-client/models"
 
 	"git.tor.ph/hiveon/pool/config"
 	"github.com/influxdata/influxdb1-client"
@@ -14,14 +14,14 @@ import (
 )
 
 type MinerdashRepositorer interface {
-	GetPoolLatestShare() (Row, error)
-	GetPoolWorker() (Row, error)
-	GetPoolMiner() (Row, error)
+	GetPoolLatestShare() (influx.Row, error)
+	GetPoolWorker() (influx.Row, error)
+	GetPoolMiner() (influx.Row, error)
 	GetETHHashrate() (IncomeCurrency, error)
-	GetShares(walletId string, workerId string) (Row, error)
-	GetLocalHashrateResult(walletId string, workerId string) (Row, error)
+	GetShares(walletId string, workerId string) (influx.Row, error)
+	GetLocalHashrateResult(walletId string, workerId string) (influx.Row, error)
 	GetHashrate(walletId string, workerId string) (RepoHashrate, error)
-	GetCountHistory(walletId string) (Row, error)
+	GetCountHistory(walletId string) (influx.Row, error)
 	GetHashrate20m(walletId string, workerId string) (client.Result, error)
 	GetAvgHashrate1d(walletId string, workerId string) (client.Result, error)
 	GetWorkers24hStatistic(walletId string, workerId string) (client.Result, error)
@@ -69,20 +69,20 @@ func (m *MinerdashRepository) queryFloatSingle(query string) (float64, error) {
 	return result, nil
 }
 
-func (m *MinerdashRepository) querySingle(query string) (Row, error) {
+func (m *MinerdashRepository) querySingle(query string) (influx.Row, error) {
 	data, err := m.queryRaw(query)
 	if err != nil {
-		return Row{}, err
+		return influx.Row{}, err
 	}
 	res := data.(client.Result)
 	if res.Series == nil {
-		return Row{}, apierrors.NewApiErr(400, "No data")
+		return influx.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 
 	return res.Series[0], nil
 }
 
-func (m *MinerdashRepository) GetPoolLatestShare() (Row, error) {
+func (m *MinerdashRepository) GetPoolLatestShare() (influx.Row, error) {
 	workerState := config.WorkerState
 
 	sql := fmt.Sprintf(`
@@ -94,7 +94,7 @@ func (m *MinerdashRepository) GetPoolLatestShare() (Row, error) {
 	return m.querySingle(sql)
 }
 
-func (m *MinerdashRepository) GetPoolWorker() (Row, error) {
+func (m *MinerdashRepository) GetPoolWorker() (influx.Row, error) {
 	sql := `
 	SELECT max(count) as count 
 	FROM a_year.worker_count 
@@ -103,7 +103,7 @@ func (m *MinerdashRepository) GetPoolWorker() (Row, error) {
 	return m.querySingle(sql)
 }
 
-func (m *MinerdashRepository) GetPoolMiner() (Row, error) {
+func (m *MinerdashRepository) GetPoolMiner() (influx.Row, error) {
 	sql := `
 	SELECT max(count) as count 
 	FROM a_year.miner_count WHERE time>now()-1h`
@@ -135,7 +135,7 @@ func (m *MinerdashRepository) GetETHHashrate() (IncomeCurrency, error) {
 	return IncomeCurrency{CNY: cny, BTC: btc, USD: usd}, nil
 }
 
-func (m *MinerdashRepository) GetShares(walletID string, workerID string) (Row, error) {
+func (m *MinerdashRepository) GetShares(walletID string, workerID string) (influx.Row, error) {
 	time := config.ZoomConfigTime
 	zoom := config.ZoomConfigZoom
 
@@ -158,18 +158,18 @@ func (m *MinerdashRepository) GetShares(walletID string, workerID string) (Row, 
 
 	res, err := m.querySingle(sql)
 	if err != nil {
-		return Row{}, err
+		return influx.Row{}, err
 	}
 	if res.Values == nil {
 		log.Error("Can't querySingle influx data")
 		log.Info("Query: ", sql)
-		return Row{}, apierrors.NewApiErr(400, "No data")
+		return influx.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 
 	return res, nil
 }
 
-func (m *MinerdashRepository) GetLocalHashrateResult(walletID string, workerID string) (Row, error) {
+func (m *MinerdashRepository) GetLocalHashrateResult(walletID string, workerID string) (influx.Row, error) {
 	time := config.ZoomConfigTime
 	zoom := config.ZoomConfigZoom
 
@@ -187,13 +187,13 @@ func (m *MinerdashRepository) GetLocalHashrateResult(walletID string, workerID s
 
 	res, err := m.querySingle(sql)
 	if err != nil {
-		return Row{}, err
+		return influx.Row{}, err
 	}
 	if res.Values == nil {
 		// seems like shit
 		log.Error("Can't querySingle influx data")
 		log.Info("Query: ", sql)
-		return Row{}, apierrors.NewApiErr(400, "No data")
+		return influx.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 
 	return res, nil
@@ -228,7 +228,7 @@ func (m *MinerdashRepository) GetHashrate(walletID string, workerID string) (Rep
 	}, nil
 }
 
-func (m *MinerdashRepository) GetCountHistory(walletID string) (Row, error) {
+func (m *MinerdashRepository) GetCountHistory(walletID string) (influx.Row, error) {
 	time := config.ZoomConfigTime
 	zoom := config.ZoomConfigZoom
 	var sql string
@@ -254,13 +254,13 @@ func (m *MinerdashRepository) GetCountHistory(walletID string) (Row, error) {
 
 	res, err := m.querySingle(sql)
 	if err != nil {
-		return Row{}, err
+		return influx.Row{}, err
 	}
 
 	if res.Values == nil {
 		log.Error("Can't querySingle influx data")
 		log.Info("Query: ", sql)
-		return Row{}, apierrors.NewApiErr(400, "No data")
+		return influx.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 	return res, nil
 }

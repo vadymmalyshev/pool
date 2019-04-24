@@ -2,7 +2,7 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	. "git.tor.ph/hiveon/pool/internal/minerdash"
+	minerdashRepository "git.tor.ph/hiveon/pool/internal/minerdash"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,11 +13,11 @@ const (
 )
 
 type MinerAPI struct {
-	minerService MinerServicer
+	minerService minerdashRepository.MinerServicer
 }
 
 func NewMinerAPI() *MinerAPI {
-	return &MinerAPI{minerService: NewMinerService()}
+	return &MinerAPI{minerService: minerdashRepository.NewMinerService()}
 }
 
 // Handle GET /api/pool/futureIncome
