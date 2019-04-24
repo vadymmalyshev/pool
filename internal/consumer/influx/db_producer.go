@@ -10,7 +10,6 @@ import (
 	"github.com/influxdata/influxdb1-client"
 	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
@@ -28,6 +27,7 @@ var precision string
 
 
 func StartDBProducer(er chan error, buffer chan []byte, telebot *tb.Bot) {
+	var err error
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -35,11 +35,15 @@ func StartDBProducer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 	redisRepository = redis.NewRedisRepository()
 	//addTelebotRedisEndpoints(telebot)
 
-	retention = utils.GetConfig().GetString("kafka.retention")
-	database = utils.GetConfig().GetString("kafka.db_name")
-	precision = utils.GetConfig().GetString("kafka.precision")
+	retention = config.Config.Kafka.Retention
+	database =  config.Config.Kafka.DbName
+	precision = config.Config.Kafka.Precision
 
-	clInflux := getMinerdashClient();
+	clInflux, err = config.Config.InfluxDB.Connect()
+	if err != nil {
+		log.Error(err)
+		er <- fmt.Errorf("%s", err)
+	}
 	//addTelebotInfluxEndpoints(telebot)
 
 	log.Info("Created influx client ", clInflux.Addr())
@@ -54,33 +58,6 @@ func StartDBProducer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 			writeToInflux(data)
 		}
 	}
-}
-
-func getMinerdashClient() (*client.Client) {
-
-	host := config.InfluxDB.Host
-	port := config.InfluxDB.Port
-	user := config.InfluxDB.User
-	password := config.InfluxDB.Pass
-
-	u, err := url.Parse(fmt.Sprintf("http://%s:%s", host, strconv.Itoa(port)))
-
-	if err != nil {
-		panic(err)
-	}
-
-	clInflux, err = client.NewClient(client.Config{URL: *u})
-	if err != nil {
-		log.Error(err)
-	}
-
-	if _, _, err := clInflux.Ping(); err != nil {
-		log.Error(err)
-	}
-
-	clInflux.SetAuth(user, password)
-
-	return clInflux
 }
 
 func writeToInflux(data []byte) {

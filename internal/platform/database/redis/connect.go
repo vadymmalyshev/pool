@@ -2,18 +2,30 @@ package redis
 
 import (
 	"fmt"
-
-	"github.com/gomodule/redigo/redis"
+	"strconv"
+	"github.com/go-redis/redis"
+	//"github.com/gomodule/redigo/redis"
 )
 
 // Connect returns initialized connection to redis
-func (db *DB) Connect() (redis.Conn, error) {
-	conn, err := redis.Dial("tcp", db.Connection())
+func (db *DB) Connect() (*redis.Client, error) {
+
+	host := db.Host
+	port := db.Port
+	password := db.Pass
+	dbname, _ := strconv.Atoi(db.Name)
+
+	client := redis.NewClient(&redis.Options{
+		Addr:     host + ":" + strconv.Itoa(port),
+		Password: password,
+		DB:       dbname,
+	})
+
+	_, err := client.Ping().Result()
 	if err != nil {
 		return nil, err
 	}
-
-	return conn, nil
+	return client, nil
 }
 
 //Connection returns connection string to redis server

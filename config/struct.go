@@ -50,6 +50,7 @@ type common struct {
 			State        string `yaml:"state"`
 		} `yaml:"shares"`
 	} `yaml:"pool"`
+	Scheduler  Scheduler `yaml:"scheduler"`
 }
 
 // Scheduler represents settings for consumer scheduler

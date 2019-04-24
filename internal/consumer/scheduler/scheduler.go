@@ -3,15 +3,14 @@ package scheduler
 import (
 	"fmt"
 	"git.tor.ph/hiveon/pool/config"
-	"github.com/robfig/cron"
 	"git.tor.ph/hiveon/pool/internal/consumer/utils"
 	"github.com/influxdata/influxdb1-client"
+	"github.com/robfig/cron"
 	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
 	"math"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -20,16 +19,24 @@ var ethAPI, cnyAPI string
 var retention, database, measurement, precision string
 var clInflux *client.Client
 
+
 func StartScheduler(er chan error, telebot *tb.Bot) {
-	ethAPI = utils.GetConfig().GetString("scheduler.eth_API")
-	cnyAPI = utils.GetConfig().GetString("scheduler.cny_API")
+	var err error
 
-	retention = utils.GetConfig().GetString("scheduler.retention")
-	measurement = utils.GetConfig().GetString("scheduler.measurement")
-	database = utils.GetConfig().GetString("kafka.db_name")
-	precision = utils.GetConfig().GetString("kafka.precision")
+	ethAPI = config.Config.Scheduler.EthAPI
+	cnyAPI = config.Config.Scheduler.CnyAPI
 
-	clInflux := getMinerdashClient()
+	retention = config.Config.Scheduler.Retention
+	measurement = config.Config.Scheduler.Measurement
+	database = config.Config.Kafka.DbName
+	precision = config.Config.Kafka.Precision
+
+	clInflux, err = config.Config.InfluxDB.Connect()
+
+	if err != nil {
+		log.Error(err)
+		er <- fmt.Errorf("%s", err)
+	}
 	log.Info("Created influx client ", clInflux.Addr())
 
 	fethCurrencyRates()
@@ -63,33 +70,6 @@ func fethCurrencyRates() {
 	writeToInflux(res, resCny)
 }
 
-func getMinerdashClient() *client.Client {
-
-	host := config.InfluxDB.Host
-	port := config.InfluxDB.Port
-	user := config.InfluxDB.User
-	password := config.InfluxDB.Pass
-
-	u, err := url.Parse(fmt.Sprintf("http://%s:%s", host, strconv.Itoa(port)))
-
-	if err != nil {
-		panic(err)
-	}
-
-	clInflux, err = client.NewClient(client.Config{URL: *u})
-	if err != nil {
-		log.Error(err)
-	}
-
-	if _, _, err := clInflux.Ping(); err != nil {
-		log.Error(err)
-	}
-
-	clInflux.SetAuth(user, password)
-
-	return clInflux
-}
-
 func writeToInflux(res map[string]interface{}, res2 map[string]interface{}) {
 	var pts = make([]client.Point, 1)
 	fields := make(map[string]interface{})
@@ -100,7 +80,6 @@ func writeToInflux(res map[string]interface{}, res2 map[string]interface{}) {
 	cny := res2["price_cny"].(string)
 	cnyFloat, _ := strconv.ParseFloat(cny, 64)
 	cnyFloat = math.Round(cnyFloat*100) / 100 //round
-	//cnyString := strconv.FormatFloat(cnyFloat, 'f', 2, 64)
 
 	btc := res2["price_btc"].(string)
 	btcFloat, _ := strconv.ParseFloat(btc, 64)

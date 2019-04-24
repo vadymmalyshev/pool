@@ -26,21 +26,11 @@ func NewRedisRepository() IRedisRepository {
 }
 
 func GetRedisClient() *redis.Client {
-	host := config.Redis.Host
-	port := config.Redis.Port
-	password := config.Redis.Pass
-	db, _ := strconv.Atoi(config.Redis.Name)
-	client := redis.NewClient(&redis.Options{
-		Addr:     host + ":" + strconv.Itoa(port),
-		Password: password,
-		DB:       db,
-	})
+	client, err := config.Config.Redis.Connect()
 
-	_, err := client.Ping().Result()
 	if err != nil {
 		log.Error(err)
 	}
-
 	return client
 }
 

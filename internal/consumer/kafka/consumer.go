@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.tor.ph/hiveon/pool/config"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
-	kafkaClient "git.tor.ph/hiveon/pool/internal/platform/database/kafka"
-	log "github.com/sirupsen/logrus"
 	"git.tor.ph/hiveon/pool/internal/consumer/model"
 	"git.tor.ph/hiveon/pool/internal/consumer/redis"
 	"git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
+	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"os"
 	"os/signal"
@@ -30,7 +29,7 @@ func StartConsumer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	c, err := kafkaClient.DB.Connect("");
+	c, err := config.Config.Kafka.Connect()
 
 	if err != nil {
 		log.Error("Failed to create consumer: ", err)
