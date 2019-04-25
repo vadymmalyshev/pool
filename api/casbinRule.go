@@ -6,6 +6,7 @@ import (
 	"git.tor.ph/hiveon/pool/internal/casbin"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/sirupsen/logrus"
 )
 
 const paramCRID = "ruleID"
@@ -15,7 +16,11 @@ type CasbinRuleAPI struct {
 }
 
 func NewCasbinRuleAPI() *CasbinRuleAPI {
-	return &CasbinRuleAPI{casbin.NewCasRuleRepository(config.GetIDPDB())}
+	db, err := config.Config.IDP.DB.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init db: %s", err)
+	}
+	return &CasbinRuleAPI{casbin.NewCasRuleRepository(db)}
 }
 
 // Handle GET /api/rule/get/:ruleID

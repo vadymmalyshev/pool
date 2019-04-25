@@ -66,7 +66,7 @@ func main() {
 	initCasbinMiddleware(r)
 
 	go func() {
-		errs <- r.Run(fmt.Sprintf(":%d", config.API.Port))
+		errs <- r.Run(fmt.Sprintf(":%d", config.Config.API.Port))
 	}()
 
 	go func() {
@@ -79,7 +79,7 @@ func main() {
 }
 
 func initCasbinMiddleware(r *gin.Engine) {
-	a_redis := redisadapter.NewAdapter("tcp", config.Redis.Host+":"+strconv.Itoa(config.Redis.Port))
+	a_redis := redisadapter.NewAdapter("tcp", config.Config.Redis.Host+":"+strconv.Itoa(config.Config.Redis.Port))
 	e := casbin.NewEnforcer("internal/casbin/authz_model.conf", a_redis)
 	r.Use(middleware.NewAuthorizer(e))
 }

@@ -105,8 +105,8 @@ func (b BillingCalculator) generateStatistic(WalletWorkerMapping map[string]stri
 	res := utils.ParseJSON(string(body), false)
 
 	// hashrate and currency rates
-	hashrateCul, _ := strconv.ParseFloat(config.HashrateCul, 64)
-	hashrateCulDivider, _ := strconv.ParseFloat(config.HashrateCulDivider, 64)
+	hashrateCul, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.Cul, 64)
+	hashrateCulDivider, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.CulDivider, 64)
 	hashrateConfig := hashrateCul / hashrateCulDivider
 	USD := rates["usd"].(float64)
 	BTC := rates["btc"].(float64)
@@ -157,7 +157,7 @@ func (b BillingCalculator) calculateAndSaveCommission(stat models.BillingWorkerS
 	BTC := roundFloat(hashrate_ * rates["btc"])
 	CNY := roundFloat(hashrate_ * rates["cny"])
 
-	Commission := roundFloat(USD * config.Config.Pool.Devfee)
+	Commission := roundFloat(USD * config.Config.Pool.Billing.DevFee)
 	workerCommission := models.BillingWorkerMoney{Hashrate: hashrate, USD: USD, BTC: BTC, CNY: CNY, CommissionUSD: Commission, Worker: *worker}
 
 	return b.BillingRepo.SaveWorkerMoney(workerCommission)

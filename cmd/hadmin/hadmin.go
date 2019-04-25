@@ -42,7 +42,7 @@ func doMigrate(cmd *cobra.Command, args []string) {
 	db, err := config.Config.Admin.DB.Connect()
 
 	if err != nil {
-		logrus.Panicf("failed to init db: %s", err)
+		logrus.Panicf("failed to init Admin db: %s", err)
 	}
 
 	if err = models.Migrate(db); err != nil {
@@ -56,7 +56,7 @@ func doMigrate(cmd *cobra.Command, args []string) {
 	idpDB, err := config.Config.IDP.DB.Connect()
 
 	if err != nil {
-		logrus.Panicf("failed to init db: %s", err)
+		logrus.Panicf("failed to init IDP db: %s", err)
 	}
 
 	err = models.MigrateIDP(idpDB)
@@ -72,21 +72,18 @@ func addAdmin(cmd *cobra.Command, args []string) {
 
 func runServer(cmd *cobra.Command, args []string) {
 	db, err := config.Config.Admin.DB.Connect()
-
 	if err != nil {
 		logrus.Panicf("failed to init Admin DB: %s", err)
 	}
 
 	idpdb, err := config.Config.IDP.DB.Connect()
-
 	if err != nil {
 		logrus.Panicf("failed to init IDP DB: %s", err)
 	}
 
 	seq2, err := config.Config.SQL2.Connect()
-
 	if err != nil {
-		logrus.Panicf("failed to init seq2 db: %s", err)
+		logrus.Panicf("failed to init Seq2 db: %s", err)
 	}
 
 	logrus.Info("hAdmin server launched")

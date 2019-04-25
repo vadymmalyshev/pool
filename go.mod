@@ -24,6 +24,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
+	github.com/opencontainers/runc v0.1.1
 	github.com/ory/hydra v0.0.0-20181203105159-55654c084cc2
 	github.com/pkg/errors v0.8.1
 	github.com/qor/admin v0.0.0-20190311024903-b7a72de99d85

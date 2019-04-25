@@ -7,7 +7,6 @@ import (
 
 	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/config"
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/models"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
@@ -45,7 +44,7 @@ func NewBillingRepository() *BillingRepository {
 }
 
 func GetBillingRepositoryClient() *gorm.DB {
-	db, err := postgres.Connect(config.DB)
+	db, err := config.Config.Admin.DB.Connect()
 
 	//err = models.Migrate(db) // testing
 

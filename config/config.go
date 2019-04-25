@@ -16,25 +16,20 @@ func YAMLUnmarshalOpt(c *mapstructure.DecoderConfig) {
 	c.TagName = "yaml"
 }
 
-type AdminClient struct {
-	ClientID     string `mapstructure:"admin.client_id"`
-	ClientSecret string `mapstructure:"admin.client_secret"`
-}
+//type AdminClient struct {
+//	ClientID     string `mapstructure:"admin.client_id"`
+//	ClientSecret string `mapstructure:"admin.client_secret"`
+//}
 
-type API struct {
-	Host string `mapstructure:"api.host"`
-	Port int    `mapstructure:"api.port"`
-}
-
-type AdminDB struct {
-	Host    string `mapstructure:"admin.db.host"`
-	Port    int    `mapstructure:"admin.db.port"`
-	SSLMode bool   `mapstructure:"admin.db.sslmode"`
-	User    string `mapstructure:"admin.db.user"`
-	Pass    string `mapstructure:"admin.db.password"`
-	Name    string `mapstructure:"admin.db.name"`
-	Log     string `mapstructure:"admin.db.log"`
-}
+//type AdminDB struct {
+//	Host    string `mapstructure:"admin.db.host"`
+//	Port    int    `mapstructure:"admin.db.port"`
+//	SSLMode bool   `mapstructure:"admin.db.sslmode"`
+//	User    string `mapstructure:"admin.db.user"`
+//	Pass    string `mapstructure:"admin.db.password"`
+//	Name    string `mapstructure:"admin.db.name"`
+//	Log     string `mapstructure:"admin.db.log"`
+//}
 
 // dbHost    = "admin.db.host"
 // dbPort    = "admin.db.port"
@@ -45,15 +40,15 @@ type AdminDB struct {
 // dbLog     = "admin.db.log"
 
 // IDP represent IDP settings
-type IDP struct {
-	Host    string `mapstructure:"idp.db.host"`
-	Port    int    `mapstructure:"idp.db.port"`
-	SSLMode bool   `mapstructure:"idp.db.sslmode"`
-	User    string `mapstructure:"idp.db.user"`
-	Pass    string `mapstructure:"idp.db.password"`
-	Name    string `mapstructure:"idp.db.name"`
-	Log     string `mapstructure:"idp.db.log"`
-}
+//type IDP struct {
+//	Host    string `mapstructure:"idp.db.host"`
+//	Port    int    `mapstructure:"idp.db.port"`
+//	SSLMode bool   `mapstructure:"idp.db.sslmode"`
+//	User    string `mapstructure:"idp.db.user"`
+//	Pass    string `mapstructure:"idp.db.password"`
+//	Name    string `mapstructure:"idp.db.name"`
+//	Log     string `mapstructure:"idp.db.log"`
+//}
 
 // kafkaBrokers     = "kafka.brokers"
 // kafkaCaLocation  = "kafka.ca_location"

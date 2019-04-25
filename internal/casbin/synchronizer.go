@@ -34,13 +34,13 @@ type Syncronizer struct {
 
 // NewSynchronizer returns Syncronizer
 func NewSynchronizer() (*Syncronizer, error) {
-	db, err := config.Config.Admin.DB.Connect()
+	db, err := config.Config.IDP.DB.Connect()
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize db")
+		return nil, errors.Wrap(err, "failed to initialize IDP db")
 	}
 
-	redisConn, err := config.Config.Redis.Connect()
+	redisConn, err := config.Config.Redis.ConnectCasbin()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize redis")

@@ -5,8 +5,8 @@ import (
 	"github.com/casbin/casbin"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	. "github.com/ory/hydra/sdk/go/hydra/swagger"
-	. "git.tor.ph/hiveon/pool/internal/api/utils"
+	"github.com/ory/hydra/sdk/go/hydra/swagger"
+	"git.tor.ph/hiveon/pool/internal/api/utils"
 )
 type Authorizer struct {
 	enforcer *casbin.Enforcer
@@ -26,8 +26,8 @@ func NewAuthorizer(e *casbin.Enforcer) gin.HandlerFunc {
 }
 
 func (a *Authorizer) CheckPermission(r *http.Request) bool {
-	token := r.Context().Value("token").(OAuth2TokenIntrospection)
-	user, _ := GetUserByEmail(token.Sub)
+	token := r.Context().Value("token").(swagger.OAuth2TokenIntrospection)
+	user, _ := utils.GetUserByEmail(token.Sub)
 	method := r.Method
 	path := r.URL.Path
 	return a.enforcer.Enforce(user, path, method)

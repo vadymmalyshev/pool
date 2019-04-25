@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"github.com/go-redis/redis"
-	//"github.com/gomodule/redigo/redis"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 // Connect returns initialized connection to redis
@@ -26,6 +26,15 @@ func (db *DB) Connect() (*redis.Client, error) {
 		return nil, err
 	}
 	return client, nil
+}
+
+func (db *DB) ConnectCasbin() (redigo.Conn, error) {
+	conn, err := redigo.Dial("tcp", db.Connection())
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 //Connection returns connection string to redis server

@@ -2,13 +2,13 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	. "git.tor.ph/hiveon/pool/internal/wallets"
+	"git.tor.ph/hiveon/pool/internal/wallets"
 	"git.tor.ph/hiveon/pool/models"
 	"github.com/gin-gonic/gin"
 )
 
 type EthAPI struct {
-	service WalletServicer
+	service wallets.WalletServicer
 }
 
 const (
@@ -18,7 +18,7 @@ const (
 
 // NewEthAPI return instance of ETH api service
 func NewEthAPI() *EthAPI {
-	return &EthAPI{service: NewWalletService()}
+	return &EthAPI{service: wallets.NewWalletService()}
 }
 
 // GetWalletFullData returns full mining history for 1d of specific wallet
