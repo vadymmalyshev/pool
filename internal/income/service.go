@@ -1,10 +1,9 @@
 package income
 
 import (
-	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	"github.com/jinzhu/gorm"
 	"time"
 
-	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/accounting"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,18 +18,8 @@ type incomeService struct {
 	incomeRepository     IncomeRepositorer
 }
 
-func NewIncomeService() IncomeServicer {
-	db2, err := config.Config.SQL2.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Seq2 db: %s", err)
-	}
-
-	db3, err := config.Config.SQL3.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Seq3 db: %s", err)
-	}
-
-	return &incomeService{accountingRepository: accounting.NewAccountingRepository(db2), incomeRepository: NewIncomeRepository(db3)}
+func NewIncomeService(sql2DB *gorm.DB, sql3DB *gorm.DB) IncomeServicer {
+	return &incomeService{accountingRepository: accounting.NewAccountingRepository(sql2DB), incomeRepository: NewIncomeRepository(sql3DB)}
 }
 
 func NewBlockServiceWithRepo(repo accounting.AccointingRepositorer) IncomeServicer {

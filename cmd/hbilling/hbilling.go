@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"git.tor.ph/hiveon/pool/config"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +14,12 @@ import (
 func main() {
 	errs := make(chan error, 0)
 
-	calc := billing.NewBillingCalculator()
+	admDB, err := config.Config.Admin.DB.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init Admin DB: %s", err)
+	}
+
+	calc := billing.NewBillingCalculator(admDB)
 	calc.StartCalculation(errs)
 
 	go func() {

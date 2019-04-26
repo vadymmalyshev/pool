@@ -22,13 +22,42 @@ func main() {
 
 	r := gin.Default()
 
-	incomeHandler := api.NewIncomeAPI()
-	walletHandler := api.NewEthAPI()
-	minerHandler := api.NewMinerAPI()
-	userHandler := api.NewUserAPI()
-	billingHandler := api.NewBillingAPI()
+	sql2DB, err := config.Config.SQL2.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init Seq2 db: %s", err)
+	}
 
-	casbinRuleHandler := api.NewCasbinRuleAPI()
+	sql3DB, err := config.Config.SQL3.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init Seq3 db: %s", err)
+	}
+
+	admDB, err := config.Config.Admin.DB.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init Admin DB: %s", err)
+	}
+
+	idpDB, err := config.Config.IDP.DB.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init IDP DB: %s", err)
+	}
+
+	influxDB, err := config.Config.InfluxDB.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init Influx db: %s", err)
+	}
+
+	redisDB, err := config.Config.Redis.Connect()
+	if err != nil {
+		logrus.Panicf("failed to init Redis db: %s", err)
+	}
+
+	incomeHandler := api.NewIncomeAPI(sql2DB, sql3DB)
+	walletHandler := api.NewEthAPI(sql2DB, sql3DB, admDB, influxDB, redisDB)
+	minerHandler := api.NewMinerAPI(sql2DB, sql3DB, influxDB, redisDB)
+	userHandler := api.NewUserAPI(admDB)
+	billingHandler := api.NewBillingAPI(admDB)
+	casbinRuleHandler := api.NewCasbinRuleAPI(idpDB)
 
 	r.GET("/api/pool/index", minerHandler.HandleGetIndex())
 	r.GET("/api/pool/incomeHistory", incomeHandler.HandleGetIncomeHistory())

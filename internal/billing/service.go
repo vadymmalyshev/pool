@@ -1,6 +1,7 @@
 package billing
 
 import (
+	"github.com/jinzhu/gorm"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -18,8 +19,8 @@ type BillingCalculator struct {
 	BillingRepo *BillingRepository
 }
 
-func NewBillingCalculator() *BillingCalculator {
-	return &BillingCalculator{BillingRepo: NewBillingRepository()}
+func NewBillingCalculator(admDB *gorm.DB) *BillingCalculator {
+	return &BillingCalculator{BillingRepo: NewBillingRepository(admDB)}
 }
 
 func (b BillingCalculator) StartCalculation(er chan error) {

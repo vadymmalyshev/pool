@@ -2,12 +2,13 @@ package wallets
 
 import (
 	"encoding/json"
-	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	"git.tor.ph/hiveon/pool/internal/redis"
 	"git.tor.ph/hiveon/pool/models"
-	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	red "github.com/go-redis/redis"
+	"github.com/influxdata/influxdb1-client"
+	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 	"math"
 	"strconv"
@@ -36,33 +37,14 @@ type walletService struct {
 	walletRepository    WalletRepositorer
 }
 
-func NewWalletService() WalletServicer {
-	db3, err := config.Config.SQL3.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Seq3 db: %s", err)
-	}
-
-	infl, err := config.Config.InfluxDB.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Influx db: %s", err)
-	}
-
-	red, err := config.Config.Redis.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Redis db: %s", err)
-	}
-
-	adm, err := config.Config.Admin.DB.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Admin DB: %s", err)
-	}
+func NewWalletService(sql2DB *gorm.DB, sql3DB *gorm.DB, admDB *gorm.DB , influxDB *client.Client , redisDB *red.Client) WalletServicer {
 
 	return &walletService{
-		minerService:        minerdash.NewMinerService(),
-		redisRepository:     redis.NewRedisRepository(red),
-		incomeRepository:    income.NewIncomeRepository(db3),
-		minerdashRepository: minerdash.NewMinerdashRepository(infl),
-		walletRepository:    NewWalletRepository(adm)}
+		minerService:        minerdash.NewMinerService(sql2DB, sql3DB, influxDB, redisDB),
+		redisRepository:     redis.NewRedisRepository(redisDB),
+		incomeRepository:    income.NewIncomeRepository(sql3DB),
+		minerdashRepository: minerdash.NewMinerdashRepository(influxDB),
+		walletRepository:    NewWalletRepository(admDB)}
 }
 
 func (w *walletService) GetWalletInfo(walletId string) (minerdash.WalletInfo, error) {

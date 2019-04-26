@@ -21,19 +21,17 @@ func (db *DB) Connect() (*gorm.DB, error) {
 		pointerDB *gorm.DB
 		dbErr     error
 	)
-	dbOnce.Do(func() {
 		var err error
 
 		if err = db.Validate(); err != nil {
 			dbErr = errors.Wrap(err, "failed to validate db config")
-			return
+			return nil, err
 		}
 
 		if pointerDB, err = gorm.Open("postgres", db.Connection()); err != nil {
 			dbErr = errors.Wrap(err, "failed to initialize db")
-			return
+			return nil, err
 		}
-	})
 
 	if dbErr == nil {
 		pointerDB.LogMode(db.Log)

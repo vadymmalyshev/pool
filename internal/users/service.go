@@ -1,9 +1,8 @@
 package users
 
 import (
-	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/models"
-	"github.com/sirupsen/logrus"
+	"github.com/jinzhu/gorm"
 )
 
 type UserServicer interface {
@@ -15,13 +14,8 @@ type userService struct {
 	userRepository UserRepositorer
 }
 
-func NewUserService() UserServicer {
-	adm, err := config.Config.Admin.DB.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Admin DB: %s", err)
-	}
-
-	return &userService{userRepository: NewUserRepository(adm)}
+func NewUserService(admDB *gorm.DB) UserServicer {
+	return &userService{userRepository: NewUserRepository(admDB)}
 }
 
 func (u *userService) GetUserWallet(userID uint) ([]models.Wallet, error) {

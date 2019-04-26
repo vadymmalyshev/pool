@@ -4,6 +4,9 @@ import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
+	client "github.com/influxdata/influxdb1-client"
 )
 
 const (
@@ -16,8 +19,8 @@ type MinerAPI struct {
 	minerService minerdash.MinerServicer
 }
 
-func NewMinerAPI() *MinerAPI {
-	return &MinerAPI{minerService: minerdash.NewMinerService()}
+func NewMinerAPI(sql2DB *gorm.DB, sql3DB *gorm.DB, influxDB *client.Client, redisDB *redis.Client) *MinerAPI {
+	return &MinerAPI{minerService: minerdash.NewMinerService(sql2DB, sql3DB, influxDB, redisDB)}
 }
 
 // Handle GET /api/pool/futureIncome

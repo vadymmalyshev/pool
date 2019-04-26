@@ -39,6 +39,7 @@ idp:
     user: "idp"
     sslmode: false
     password: "8GWbz2JF4FMe1Q8X"
+    log: true
 
 portal:
   port: 3001
@@ -61,12 +62,13 @@ admin:
     key: "$HIVEON_POOL/config/certs/admin.local.key"
     pem: "$HIVEON_POOL/config/certs/admin.local.pem"
   db:
-    host: "localhost"
+    host: "116.203.56.122"
     port: 5432
-    name: "idp"
-    user: "idp"
+    name: "oauth"
+    user: "postgres"
     sslmode: false
-    password: "8GWbz2JF4FMe1Q8X"
+    password: "postgres"
+    log: true
 
 auth:
   sign_key: "Th1s!sMyR4Nd0MStri4gPleaseChangeIt"

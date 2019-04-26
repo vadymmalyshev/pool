@@ -2,6 +2,7 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
+	"github.com/jinzhu/gorm"
 	"strconv"
 	"git.tor.ph/hiveon/pool/internal/users"
 	"github.com/gin-gonic/gin"
@@ -17,8 +18,8 @@ type UserAPI struct {
 	userService users.UserServicer
 }
 
-func NewUserAPI() *UserAPI {
-	return &UserAPI{userService: users.NewUserService()}
+func NewUserAPI(admDB *gorm.DB) *UserAPI {
+	return &UserAPI{userService: users.NewUserService(admDB)}
 }
 
 func (h *UserAPI) GetUserWallet() gin.HandlerFunc {

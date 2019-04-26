@@ -16,51 +16,6 @@ func YAMLUnmarshalOpt(c *mapstructure.DecoderConfig) {
 	c.TagName = "yaml"
 }
 
-//type AdminClient struct {
-//	ClientID     string `mapstructure:"admin.client_id"`
-//	ClientSecret string `mapstructure:"admin.client_secret"`
-//}
-
-//type AdminDB struct {
-//	Host    string `mapstructure:"admin.db.host"`
-//	Port    int    `mapstructure:"admin.db.port"`
-//	SSLMode bool   `mapstructure:"admin.db.sslmode"`
-//	User    string `mapstructure:"admin.db.user"`
-//	Pass    string `mapstructure:"admin.db.password"`
-//	Name    string `mapstructure:"admin.db.name"`
-//	Log     string `mapstructure:"admin.db.log"`
-//}
-
-// dbHost    = "admin.db.host"
-// dbPort    = "admin.db.port"
-// dbSSLMode = "admin.db.sslmode"
-// dbUser    = "admin.db.user"
-// dbPass    = "admin.db.password"
-// dbName    = "admin.db.name"
-// dbLog     = "admin.db.log"
-
-// IDP represent IDP settings
-//type IDP struct {
-//	Host    string `mapstructure:"idp.db.host"`
-//	Port    int    `mapstructure:"idp.db.port"`
-//	SSLMode bool   `mapstructure:"idp.db.sslmode"`
-//	User    string `mapstructure:"idp.db.user"`
-//	Pass    string `mapstructure:"idp.db.password"`
-//	Name    string `mapstructure:"idp.db.name"`
-//	Log     string `mapstructure:"idp.db.log"`
-//}
-
-// kafkaBrokers     = "kafka.brokers"
-// kafkaCaLocation  = "kafka.ca_location"
-// kafkaUsername    = "kafka.username"
-// kafkaPass        = "kafka.password"
-// kafkaTopics      = "kafka.topics"
-// kafkaGroupId     = "kafka.group_id"
-// kafkaRetention   = "kafka.retention"
-// kafkaDbName      = "kafka.db_name"
-// kafkaPrecision   = "kafka.precision"
-// kafkaMiningPools = "kafka.mining_pools"
-
 // AdminPrefix represents url prefix for admin panel
 const AdminPrefix = "/admin"
 

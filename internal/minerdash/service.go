@@ -10,8 +10,9 @@ import (
 	"git.tor.ph/hiveon/pool/internal/redis"
 	"github.com/influxdata/influxdb1-client/models"
 	"github.com/jinzhu/gorm"
-	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/Sirupsen/logrus"
+	client "github.com/influxdata/influxdb1-client"
 	log "github.com/sirupsen/logrus"
+	red "github.com/go-redis/redis"
 	"math"
 	"reflect"
 	"sort"
@@ -45,29 +46,10 @@ type minerService struct {
 	redisRepository      redis.RedisRepositorer
 }
 
-func NewMinerService() MinerServicer {
-	db3, err := config.Config.SQL3.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Seq3 db: %s", err)
-	}
+func NewMinerService(sql2DB *gorm.DB, sql3DB *gorm.DB, influxDB *client.Client, redisDB *red.Client) MinerServicer {
 
-	db2, err := config.Config.SQL2.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Seq2 db: %s", err)
-	}
-
-	infl, err := config.Config.InfluxDB.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Influx db: %s", err)
-	}
-
-	red, err := config.Config.Redis.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init Redis db: %s", err)
-	}
-
-	return &minerService{incomeRepository: income.NewIncomeRepository(db3), minerdashRepository: NewMinerdashRepository(infl),
-		accountingRepository: accounting.NewAccountingRepository(db2), redisRepository: redis.NewRedisRepository(red)}
+	return &minerService{incomeRepository: income.NewIncomeRepository(sql3DB), minerdashRepository: NewMinerdashRepository(influxDB),
+		accountingRepository: accounting.NewAccountingRepository(sql2DB), redisRepository: redis.NewRedisRepository(redisDB)}
 }
 
 // for mockBlockRepo testing

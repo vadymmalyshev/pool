@@ -2,11 +2,10 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/casbin"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/sirupsen/logrus"
 )
 
 const paramCRID = "ruleID"
@@ -15,11 +14,7 @@ type CasbinRuleAPI struct {
 	casRuleRepository casbin.CasbinRuleRepositorer
 }
 
-func NewCasbinRuleAPI() *CasbinRuleAPI {
-	db, err := config.Config.IDP.DB.Connect()
-	if err != nil {
-		logrus.Panicf("failed to init db: %s", err)
-	}
+func NewCasbinRuleAPI(db *gorm.DB) *CasbinRuleAPI {
 	return &CasbinRuleAPI{casbin.NewCasRuleRepository(db)}
 }
 
