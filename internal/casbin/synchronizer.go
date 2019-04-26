@@ -34,7 +34,7 @@ type Syncronizer struct {
 
 // NewSynchronizer returns Syncronizer
 func NewSynchronizer() (*Syncronizer, error) {
-	db, err := config.Config.IDP.DB.Connect()
+	db, err := config.Config.Admin.DB.Connect()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize IDP db")
