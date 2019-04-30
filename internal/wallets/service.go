@@ -3,9 +3,9 @@ package wallets
 import (
 	"encoding/json"
 	"git.tor.ph/hiveon/pool/config"
-	. "git.tor.ph/hiveon/pool/internal/income"
+	incomeRepository "git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
-	. "git.tor.ph/hiveon/pool/internal/redis"
+	"git.tor.ph/hiveon/pool/internal/redis"
 	"git.tor.ph/hiveon/pool/models"
 	log "github.com/sirupsen/logrus"
 	"math"
@@ -29,8 +29,8 @@ type WalletServicer interface {
 
 type walletService struct {
 	minerService        minerdash.MinerServicer
-	redisRepository     RedisRepositorer
-	incomeRepository    IncomeRepositorer
+	redisRepository     redis.RedisRepositorer
+	incomeRepository    incomeRepository.IncomeRepositorer
 	minerdashRepository minerdash.MinerdashRepositorer
 	walletRepository    WalletRepositorer
 }
@@ -38,8 +38,8 @@ type walletService struct {
 func NewWalletService() WalletServicer {
 	return &walletService{
 		minerService:        minerdash.NewMinerService(),
-		redisRepository:     NewRedisRepository(config.Red),
-		incomeRepository:    NewIncomeRepository(config.Seq3),
+		redisRepository:     redis.NewRedisRepository(config.Red),
+		incomeRepository:    incomeRepository.NewIncomeRepository(config.Seq3),
 		minerdashRepository: minerdash.NewMinerdashRepository(config.Influx),
 		walletRepository:    NewWalletRepository(config.GetDB())}
 }

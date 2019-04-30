@@ -2,9 +2,9 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
+	userRepository "git.tor.ph/hiveon/pool/internal/users"
 	"strconv"
 
-	. "git.tor.ph/hiveon/pool/internal/users"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,11 +15,11 @@ const (
 )
 
 type UserAPI struct {
-	userService UserServicer
+	userService userRepository.UserServicer
 }
 
 func NewUserAPI() *UserAPI {
-	return &UserAPI{userService: NewUserService()}
+	return &UserAPI{userService: userRepository.NewUserService()}
 }
 
 func (h *UserAPI) GetUserWallet() gin.HandlerFunc {
