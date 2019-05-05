@@ -7,7 +7,7 @@ import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/models"
 	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type BillingRepositorer interface {
@@ -186,14 +186,14 @@ func (r *BillingRepository) AllWorkerStatistic(workerIDs []int, date string) ([]
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
-			logrus.Error(err)
+			log.Error(err)
 		}
 	}()
 	for rows.Next() {
 		var stat models.BillingWorkerStatistic
 		if err := rows.Scan(&stat.WalletID, &stat.WorkerID, &stat.ValidShares,
 			&stat.Wallet.Coin.Name, &stat.Wallet.Address, &stat.Worker.Name); err != nil {
-			logrus.Error(err)
+			log.Error(err)
 		}
 		stats = append(stats, stat)
 	}
@@ -227,7 +227,7 @@ func (r *BillingRepository) BulkUpdateWorkersShares(fees []models.WorkerFee) err
 	defer func() {
 		if err := recover(); err != nil {
 			tx.Rollback()
-			logrus.Errorf("error transaction: %v", err)
+			log.Errorf("error transaction: %v", err)
 		}
 	}()
 	for _, v := range fees {
@@ -252,7 +252,7 @@ func (r *BillingRepository) BulkUpdateWorkersFeeIfNotExist(fees []models.WorkerF
 	defer func() {
 		if err := recover(); err != nil {
 			tx.Rollback()
-			logrus.Errorf("error transaction: %v", err)
+			log.Errorf("error transaction: %v", err)
 		}
 	}()
 	for _, v := range fees {
