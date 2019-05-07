@@ -2,14 +2,34 @@ package redis
 
 import (
 	"fmt"
-
-	"git.tor.ph/hiveon/pool/internal/platform/database"
-	"github.com/gomodule/redigo/redis"
+	"strconv"
+	"github.com/go-redis/redis"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 // Connect returns initialized connection to redis
-func Connect(c database.Config) (redis.Conn, error) {
-	conn, err := redis.Dial("tcp", Connection(c))
+func (db *DB) Connect() (*redis.Client, error) {
+
+	host := db.Host
+	port := db.Port
+	password := db.Pass
+	dbname, _ := strconv.Atoi(db.Name)
+
+	client := redis.NewClient(&redis.Options{
+		Addr:     host + ":" + strconv.Itoa(port),
+		Password: password,
+		DB:       dbname,
+	})
+
+	_, err := client.Ping().Result()
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+func (db *DB) ConnectCasbin() (redigo.Conn, error) {
+	conn, err := redigo.Dial("tcp", db.Connection())
 	if err != nil {
 		return nil, err
 	}
@@ -18,6 +38,6 @@ func Connect(c database.Config) (redis.Conn, error) {
 }
 
 //Connection returns connection string to redis server
-func Connection(c database.Config) string {
-	return fmt.Sprintf("%s:%d", c.Host, c.Port)
+func (db *DB) Connection() string {
+	return fmt.Sprintf("%s:%d", db.Host, db.Port)
 }

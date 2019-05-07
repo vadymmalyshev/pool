@@ -20,3 +20,10 @@ TODO: Remove an admin access to the user which found by email
 
 expose remote influx ports to use it as local service
 ```ssh root@95.216.199.4 -L 8086:127.0.0.1:8086```
+
+
+For Debian and Ubuntu based distros, install librdkafka-dev from the standard repositories or using Confluent's Deb repository (https://docs.confluent.io/current/installation/installing_cp/index.html#rpm-packages-via-yum).
+
+
+For MAC
+`brew install librdkafka pkg-config`

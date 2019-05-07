@@ -3,25 +3,31 @@ package minerdash
 import (
 	"encoding/json"
 	"fmt"
+
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	influx "github.com/influxdata/influxdb1-client/models"
+	"github.com/influxdata/influxdb1-client/models"
 
 	"git.tor.ph/hiveon/pool/config"
-	"github.com/influxdata/influxdb1-client"
+	client "github.com/influxdata/influxdb1-client"
 	log "github.com/sirupsen/logrus"
 
 	"strings"
 )
 
+const (
+	hourAgo = "time>now()-1h"
+	now     = "time<now()-25m"
+)
+
 type MinerdashRepositorer interface {
-	GetPoolLatestShare() (influx.Row, error)
-	GetPoolWorker() (influx.Row, error)
-	GetPoolMiner() (influx.Row, error)
+	GetPoolLatestShare() (models.Row, error)
+	GetPoolWorker() (models.Row, error)
+	GetPoolMiner() (models.Row, error)
 	GetETHHashrate() (IncomeCurrency, error)
-	GetShares(walletId string, workerId string) (influx.Row, error)
-	GetLocalHashrateResult(walletId string, workerId string) (influx.Row, error)
+	GetShares(walletId string, workerId string) (models.Row, error)
+	GetLocalHashrateResult(walletId string, workerId string) (models.Row, error)
 	GetHashrate(walletId string, workerId string) (RepoHashrate, error)
-	GetCountHistory(walletId string) (influx.Row, error)
+	GetCountHistory(walletId string) (models.Row, error)
 	GetHashrate20m(walletId string, workerId string) (client.Result, error)
 	GetAvgHashrate1d(walletId string, workerId string) (client.Result, error)
 	GetWorkers24hStatistic(walletId string, workerId string) (client.Result, error)
@@ -39,7 +45,7 @@ func NewMinerdashRepository(client *client.Client) *MinerdashRepository {
 func (m *MinerdashRepository) queryRaw(query string) (interface{}, error) {
 	q := client.Query{
 		Command:  query,
-		Database: config.InfluxDB.Name,
+		Database: config.Config.InfluxDB.Name,
 	}
 
 	res, err := m.influx.Query(q)
@@ -69,44 +75,56 @@ func (m *MinerdashRepository) queryFloatSingle(query string) (float64, error) {
 	return result, nil
 }
 
-func (m *MinerdashRepository) querySingle(query string) (influx.Row, error) {
+func (m *MinerdashRepository) querySingle(query string) (models.Row, error) {
 	data, err := m.queryRaw(query)
 	if err != nil {
-		return influx.Row{}, err
+		return models.Row{}, err
 	}
 	res := data.(client.Result)
 	if res.Series == nil {
-		return influx.Row{}, apierrors.NewApiErr(400, "No data")
+		return models.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 
 	return res.Series[0], nil
 }
 
-func (m *MinerdashRepository) GetPoolLatestShare() (influx.Row, error) {
-	workerState := config.WorkerState
-
+func (m *MinerdashRepository) GetPoolLatestShare() (models.Row, error) {
 	sql := fmt.Sprintf(`
-	SELECT mean(validShares) as validShares 
-	FROM a_year.pool_hashrate 
-	WHERE time>now()-2h AND time<now()-25m 
-	GROUP BY time(%s) ORDER BY time DESC LIMIT 1`, workerState)
+	SELECT 
+		mean(validShares) as validShares 
+	FROM 
+		a_year.pool_hashrate 
+	WHERE 
+		time>now()-2h AND time<now()-25m 
+	GROUP BY 
+		time(%s) 
+	ORDER BY 
+		time DESC LIMIT 1`,
+		config.Config.Pool.Workers.State)
 
 	return m.querySingle(sql)
 }
 
-func (m *MinerdashRepository) GetPoolWorker() (influx.Row, error) {
-	sql := `
-	SELECT max(count) as count 
-	FROM a_year.worker_count 
-	WHERE time>now()-1h`
+func (m *MinerdashRepository) GetPoolWorker() (models.Row, error) {
+	sql := fmt.Sprintf(`
+	SELECT 
+		max(count) as count 
+	FROM 
+		a_year.worker_count 
+	WHERE 
+		%s`, hourAgo)
 
 	return m.querySingle(sql)
 }
 
-func (m *MinerdashRepository) GetPoolMiner() (influx.Row, error) {
-	sql := `
-	SELECT max(count) as count 
-	FROM a_year.miner_count WHERE time>now()-1h`
+func (m *MinerdashRepository) GetPoolMiner() (models.Row, error) {
+	sql := fmt.Sprintf(`
+	SELECT 
+		max(count) as count 
+	FROM 
+		a_year.miner_count 
+	WHERE 
+		%s`, hourAgo)
 
 	return m.querySingle(sql)
 }
@@ -118,7 +136,10 @@ func (m *MinerdashRepository) GetETHHashrate() (IncomeCurrency, error) {
 		mean(cny_float) as cny, 
 		mean(usd)       as usd,
 		mean(btc)       as btc 
-	FROM a_year.eth_stats WHERE time>now()-%s`, config.PoolZoom)
+	FROM 
+		a_year.eth_stats 
+	WHERE 
+		time>now()-%s`, config.Config.Pool.Zoom)
 
 	res, err := m.querySingle(sql)
 	if err != nil {
@@ -135,9 +156,7 @@ func (m *MinerdashRepository) GetETHHashrate() (IncomeCurrency, error) {
 	return IncomeCurrency{CNY: cny, BTC: btc, USD: usd}, nil
 }
 
-func (m *MinerdashRepository) GetShares(walletID string, workerID string) (influx.Row, error) {
-	time := config.ZoomConfigTime
-	zoom := config.ZoomConfigZoom
+func (m *MinerdashRepository) GetShares(walletID string, workerID string) (models.Row, error) {
 
 	sql := fmt.Sprintf(`
 	SELECT 
@@ -147,53 +166,55 @@ func (m *MinerdashRepository) GetShares(walletID string, workerID string) (influ
 	FROM 
 		two_hours.worker 
 	WHERE wallet='%s'
-		AND time>now()-%s `, walletID, time)
+		AND time>now()-%s `,
+		walletID,
+		config.Config.Pool.Shares.Period)
 
 	// if workerID provided
 	if len(strings.TrimSpace(workerID)) > 0 {
 		sql += fmt.Sprintf(" AND rig='%s' ", workerID)
 	}
 
-	sql += fmt.Sprintf(" GROUP BY time(%s) fill(0)", zoom)
+	sql += fmt.Sprintf(" GROUP BY time(%s) fill(0)", config.Config.Pool.Shares.Zoom)
 
 	res, err := m.querySingle(sql)
 	if err != nil {
-		return influx.Row{}, err
+		return models.Row{}, err
 	}
 	if res.Values == nil {
 		log.Error("Can't querySingle influx data")
 		log.Info("Query: ", sql)
-		return influx.Row{}, apierrors.NewApiErr(400, "No data")
+		return models.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 
 	return res, nil
 }
 
-func (m *MinerdashRepository) GetLocalHashrateResult(walletID string, workerID string) (influx.Row, error) {
-	time := config.ZoomConfigTime
-	zoom := config.ZoomConfigZoom
+func (m *MinerdashRepository) GetLocalHashrateResult(walletID string, workerID string) (models.Row, error) {
 
 	sql := fmt.Sprintf(`
-		SELECT sum(localHashrate) as localHashrate 
-		FROM a_month.miner_worker 
-		WHERE time>now()-%s`, time)
+		SELECT 
+			sum(localHashrate) as localHashrate 
+		FROM 
+			a_month.miner_worker 
+		WHERE time>now()-%s`, config.Config.Pool.Shares.Period)
 
 	// if workerID provided
 	if len(strings.TrimSpace(workerID)) > 0 {
 		sql += fmt.Sprintf(" AND rig='%s'", workerID)
 	}
 
-	sql += fmt.Sprintf(" GROUP BY time(%s) fill(0) ", zoom)
+	sql += fmt.Sprintf(" GROUP BY time(%s) fill(0) ", config.Config.Pool.Shares.Zoom)
 
 	res, err := m.querySingle(sql)
 	if err != nil {
-		return influx.Row{}, err
+		return models.Row{}, err
 	}
 	if res.Values == nil {
 		// seems like shit
 		log.Error("Can't querySingle influx data")
 		log.Info("Query: ", sql)
-		return influx.Row{}, apierrors.NewApiErr(400, "No data")
+		return models.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 
 	return res, nil
@@ -201,14 +222,21 @@ func (m *MinerdashRepository) GetLocalHashrateResult(walletID string, workerID s
 
 func (m *MinerdashRepository) GetHashrate(walletID string, workerID string) (RepoHashrate, error) {
 	sql := fmt.Sprintf(`
-		SELECT mean(validShares) as validShares 
-		FROM a_year.miner 
-		WHERE wallet='%s' `, walletID)
+		SELECT 
+			mean(validShares) as validShares 
+		FROM 
+			a_year.miner 
+		WHERE 
+			wallet='%s' `, walletID)
 
 	rigSQL := fmt.Sprintf(" AND rig='%s'", workerID)
 
 	hashrateSQL := sql + " AND time>now()-1h AND time<now()-25m"
-	meanHashRateSQL := sql + fmt.Sprintf(" AND token='' AND time>now()-%s AND time<now()-25m", config.PoolZoom)
+
+	meanHashRateSQL := fmt.Sprintf(` 
+		%s AND token='' 
+		AND time>now()-%s 
+		AND time<now()-25m`, sql, config.Config.Pool.Zoom)
 
 	if workerID != "" {
 		hashrateSQL += rigSQL
@@ -228,13 +256,11 @@ func (m *MinerdashRepository) GetHashrate(walletID string, workerID string) (Rep
 	}, nil
 }
 
-func (m *MinerdashRepository) GetCountHistory(walletID string) (influx.Row, error) {
-	time := config.ZoomConfigTime
-	zoom := config.ZoomConfigZoom
+func (m *MinerdashRepository) GetCountHistory(walletID string) (models.Row, error) {
 	var sql string
 
 	// what these scripts do??
-	if len(time) > 0 {
+	if len(config.Config.Pool.Shares.Period) > 0 {
 		sql = fmt.Sprintf(`
 		SELECT count(a) as count 
 		FROM 
@@ -242,37 +268,56 @@ func (m *MinerdashRepository) GetCountHistory(walletID string) (influx.Row, erro
 			FROM a_month.miner_worker
 			WHERE time>now()-%s AND wallet='%s' 
 			GROUP BY time(%s),rig) 
-		WHERE time>now()-%s 
-		GROUP BY time(%s) fill(0)`, time, walletID, zoom, time, zoom)
+		WHERE 
+			time>now()-%s 
+		GROUP BY 
+			time(%s) fill(0)`,
+			config.Config.Pool.Shares.Period,
+			walletID,
+			config.Config.Pool.Shares.Zoom,
+			config.Config.Pool.Shares.Period,
+			config.Config.Pool.Shares.Zoom)
 	} else {
-		sql = fmt.Sprintf(
-			`SELECT max(count) as count 
-			FROM a_month.miner_worker_count 
-			WHERE time>now()-%s AND wallet='%s' 
-			GROUP BY time(%s)`, time, walletID, zoom)
+		sql = fmt.Sprintf(`
+			SELECT 
+				max(count) as count 
+			FROM 
+				a_month.miner_worker_count 
+			WHERE 
+				time>now()-%s AND wallet='%s' 
+			GROUP BY 
+				time(%s)`,
+			config.Config.Pool.Shares.Period,
+			walletID,
+			config.Config.Pool.Shares.Zoom)
 	}
 
 	res, err := m.querySingle(sql)
 	if err != nil {
-		return influx.Row{}, err
+		return models.Row{}, err
 	}
 
 	if res.Values == nil {
 		log.Error("Can't querySingle influx data")
 		log.Info("Query: ", sql)
-		return influx.Row{}, apierrors.NewApiErr(400, "No data")
+		return models.Row{}, apierrors.NewApiErr(400, "No data")
 	}
 	return res, nil
 }
 
 func (m *MinerdashRepository) GetHashrate20m(walletID string, workerID string) (client.Result, error) {
 	sql := fmt.Sprintf(`
-		SELECT sum(validShares) as validShares,
-		sum(invalidShares) as invalidShares,
-		sum(staleShares) as staleShares,
-		sum(originValidShares) as originValidShares 
-		FROM two_hours.worker 
-		WHERE wallet='%s' AND time > now()-20m and time <= now()`, walletID)
+		SELECT 
+			sum(validShares) as validShares,
+			sum(invalidShares) as invalidShares,
+			sum(staleShares) as staleShares,
+			sum(originValidShares) as originValidShares 
+		FROM 
+			two_hours.worker 
+		WHERE 
+			wallet='%s' 
+			AND time > now()-20m 
+			AND time <= now()`, walletID)
 
 	if workerID != "" {
 		sql += fmt.Sprintf(" and rig='%s'", workerID)
@@ -289,12 +334,14 @@ func (m *MinerdashRepository) GetHashrate20m(walletID string, workerID string) (
 
 func (m *MinerdashRepository) GetAvgHashrate1d(walletID string, workerID string) (client.Result, error) {
 	sql := fmt.Sprintf(`
-		SELECT mean(validShares) as validShares, 
-		mean(invalidShares) as invalidShares, 
-		mean(staleShares) as staleShares,
-		mean(localHashrate) as localHashrate 
+		SELECT 
+			mean(validShares) as validShares, 
+			mean(invalidShares) as invalidShares, 
+			mean(staleShares) as staleShares,
+			mean(localHashrate) as localHashrate 
 		FROM a_month.miner_worker 
-		WHERE wallet='%s' and time>now()-%s`, walletID, config.PoolZoom)
+		WHERE wallet='%s' 
+			AND time>now()-%s`, walletID, config.Config.Pool.Zoom)
 
 	if len(strings.TrimSpace(workerID)) == 0 {
 		sql += fmt.Sprintf(" and rig='%s'", workerID)
@@ -310,24 +357,38 @@ func (m *MinerdashRepository) GetAvgHashrate1d(walletID string, workerID string)
 }
 
 func (m *MinerdashRepository) GetWorkers24hStatistic(walletID string, workerID string) (client.Result, error) {
-	time := config.WorkerConfigTime
-	zoom := config.WorkerConfigZoom
+
 	sql := `
-		SELECT sum(validShares) as validShares,
-		sum(invalidShares) as invalidShares,
-		sum(staleShares) as staleShares 
-		FROM a_month.miner_worker 
-		WHERE`
+		SELECT 
+			sum(validShares) as validShares,
+			sum(invalidShares) as invalidShares,
+			sum(staleShares) as staleShares 
+		FROM 
+			a_month.miner_worker 
+		WHERE `
 
 	if len(strings.TrimSpace(walletID)) > 0 {
-		sql += fmt.Sprintf(" wallet='%s' and", walletID)
+		sql += fmt.Sprintf(" wallet='%s' and ", walletID)
 	}
 
 	if len(strings.TrimSpace(workerID)) > 0 {
-		sql += fmt.Sprintf(" rig='%s' and time>now()-%s and time<=now()-1h group by time(%s), rig", workerID, time, zoom)
+		sql += fmt.Sprintf(` 
+			rig='%s' 
+			AND time>now()-%s 
+			AND time<=now()-1h 
+		GROUP BY 
+			time(%s), rig`,
+			workerID,
+			config.Config.Pool.Workers.Period,
+			config.Config.Pool.Workers.Zoom)
 	}
 
-	sql += fmt.Sprintf(" time>now()-%s GROUP BY time(%s), rig", time, zoom)
+	sql += fmt.Sprintf(` 
+		time>now()-%s 
+	GROUP BY 
+		time(%s), rig`,
+		config.Config.Pool.Workers.Period,
+		config.Config.Pool.Workers.Zoom)
 
 	data, err := m.queryRaw(sql)
 	if err != nil {
@@ -339,12 +400,16 @@ func (m *MinerdashRepository) GetWorkers24hStatistic(walletID string, workerID s
 
 func (m *MinerdashRepository) GetWorkersWalletsMapping24hStatistic() (client.Result, error) {
 	sql := fmt.Sprintf(`
-		SELECT sum(validShares) as validShares,
-		sum(invalidShares) as invalidShares,
-		sum(staleShares) as staleShares 
-		FROM a_month.miner_worker 
-		WHERE time>now()-%s 
-		GROUP BY rig, wallet`, config.WorkerConfigTime)
+		SELECT 
+			sum(validShares) as validShares,
+			sum(invalidShares) as invalidShares,
+			sum(staleShares) as staleShares 
+		FROM 
+			a_month.miner_worker 
+		WHERE 
+			time>now()-%s 
+		GROUP BY 
+			rig, wallet`, config.Config.Pool.Workers.Period)
 
 	data, err := m.queryRaw(sql)
 	if err != nil {

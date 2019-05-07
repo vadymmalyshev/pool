@@ -7,8 +7,8 @@ import (
 )
 
 type UserRepositorer interface {
-	GetUserWallets(userID uint) ([]models.Wallet, error)
-	SaveUserWallet(user models.Wallet) (models.Wallet, error)
+	GetUserWallets(userID uint)            ([]models.Wallet, error)
+	SaveUserWallet(user models.Wallet)     (models.Wallet, error)
 	CreateCoinIfNotExists(coinName string) (*models.Coin, error)
 }
 

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"git.tor.ph/hiveon/pool/config"
-	"git.tor.ph/hiveon/pool/internal/platform/database/redis"
 
 	"github.com/sirupsen/logrus"
 
@@ -40,7 +39,6 @@ var (
 	PathError         = "/unauthorized"
 	oauthStateString2 = "state-string"
 	conf              *oauth2.Config
-	redirectURI       = config.Admin.HydraClient.CallbackURL
 	log               *logrus.Logger
 	e                 *casbin.Enforcer
 )
@@ -208,13 +206,13 @@ func extractPath(next string) string {
 func AuthConfig() *oauth2.Config {
 
 	conf = &oauth2.Config{
-		ClientID:     config.Admin.HydraClient.ClientID,
-		ClientSecret: config.Admin.HydraClient.ClientSecret,
+		ClientID:     config.Config.Admin.Client.ClientID,
+		ClientSecret: config.Config.Admin.Client.ClientSecret,
 		Endpoint: oauth2.Endpoint{
-			AuthURL:  config.Hydra.APIUrl + "/oauth2/auth",
-			TokenURL: config.Hydra.APIUrl + "/oauth2/token",
+			AuthURL:  config.Config.Hydra.API + "/oauth2/auth",
+			TokenURL: config.Config.Hydra.API + "/oauth2/token",
 		},
-		RedirectURL: redirectURI,
+		RedirectURL: config.Config.Admin.Client.CallbackURL,
 		Scopes:      getScopes(),
 	}
 	return conf
@@ -223,7 +221,7 @@ func AuthConfig() *oauth2.Config {
 func CheckAccess() gin.HandlerFunc {
 	// casbin
 	logrus.Info("created adapter and enforcer")
-	a := redis.Adapter(config.Redis)
+	a := config.Config.Redis.Casbin()
 	e = NewAccessEnforcer(a)
 
 	return IDP(AuthConfig())
@@ -250,7 +248,7 @@ func GetCurrentUser(c *gin.Context) (string, error) {
 	}
 
 	httpClient := conf.Client(oauth2.NoContext, token)
-	resp, err := httpClient.Get(config.Hydra.APIUrl + "/userinfo")
+	resp, err := httpClient.Get(config.Config.Hydra.API + "/userinfo")
 
 	if err != nil {
 		log.Println("cannot get /userinfo: %s", err.Error())

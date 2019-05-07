@@ -2,13 +2,16 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	walletsRepository "git.tor.ph/hiveon/pool/internal/wallets"
+	"git.tor.ph/hiveon/pool/internal/wallets"
 	"git.tor.ph/hiveon/pool/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
+	 client "github.com/influxdata/influxdb1-client"
 )
 
 type EthAPI struct {
-	service walletsRepository.WalletServicer
+	service wallets.WalletServicer
 }
 
 const (
@@ -17,8 +20,8 @@ const (
 )
 
 // NewEthAPI return instance of ETH api service
-func NewEthAPI() *EthAPI {
-	return &EthAPI{service: walletsRepository.NewWalletService()}
+func NewEthAPI(sql2DB *gorm.DB, sql3DB *gorm.DB, admDB *gorm.DB, influxDB *client.Client, redisDB *redis.Client) *EthAPI {
+	return &EthAPI{service: wallets.NewWalletService(sql2DB, sql3DB, admDB, influxDB, redisDB)}
 }
 
 // GetWalletFullData returns full mining history for 1d of specific wallet

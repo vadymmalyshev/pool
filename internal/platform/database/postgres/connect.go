@@ -2,35 +2,57 @@ package postgres
 
 import (
 	"fmt"
+	"sync"
 
-	"git.tor.ph/hiveon/pool/internal/platform/database"
+	"github.com/pkg/errors"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres" // blank import is used here for simplicity
+
+	// blank import is used here for simplicity
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+var dbOnce sync.Once
+var pointerDB *gorm.DB
+
 // Connect returns initialized connection to db
-func Connect(c database.Config) (*gorm.DB, error) {
-	db, err := gorm.Open("postgres", Connection(c))
-	if err != nil {
-		return nil, err
+func (db *DB) Connect() (*gorm.DB, error) {
+	var (
+		pointerDB *gorm.DB
+		dbErr     error
+	)
+		var err error
+
+		if err = db.Validate(); err != nil {
+			dbErr = errors.Wrap(err, "failed to validate db config")
+			return nil, err
+		}
+
+		if pointerDB, err = gorm.Open("postgres", db.Connection()); err != nil {
+			dbErr = errors.Wrap(err, "failed to initialize db")
+			return nil, err
+		}
+
+	if dbErr == nil {
+		pointerDB.LogMode(db.Log)
+	} else {
+		dbOnce = *new(sync.Once)
 	}
 
-	db.LogMode(c.EnableLog)
-
-	return db, nil
+	return pointerDB, dbErr
 }
 
-func Connection(c database.Config) string {
+// Connection represents connection string
+func (db *DB) Connection() string {
 	ssl := "disable"
-	if c.EnableSSL {
+	if db.SSLMode {
 		ssl = "enable"
 	}
 	return fmt.Sprintf("host=%s port=%d sslmode=%s user=%s dbname=%s password=%s ",
-		c.Host,
-		c.Port,
+		db.Host,
+		db.Port,
 		ssl,
-		c.User,
-		c.Name,
-		c.Pass)
+		db.User,
+		db.Name,
+		db.Pass)
 }

@@ -3,6 +3,7 @@ package accounting
 import (
 	"database/sql"
 	"fmt"
+
 	"git.tor.ph/hiveon/pool/api/apierrors"
 	"git.tor.ph/hiveon/pool/config"
 	"github.com/jinzhu/gorm"
@@ -39,8 +40,9 @@ func (repo *AccountingRepository) GetNormalBlocks24h() (int, error) {
 	sql := fmt.Sprintf(`
 		SELECT count(id) as count 
 		FROM blocks as b 
-		WHERE is_uncle=0 AND 
-		b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval %s)) * 1000`, config.PgOneDay)
+		WHERE is_uncle=0 
+			AND b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval %s)) * 1000`, 
+		config.Config.Pool.Blocks.Period)
 
 	return repo.queryIntSingle(sql)
 }
@@ -50,8 +52,9 @@ func (repo *AccountingRepository) GetUncleBlocks24h() (int, error) {
 	sql := fmt.Sprintf(`
 		SELECT count(id) as count 
 		FROM blocks as b 
-		WHERE is_uncle=1 AND 
-		b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval %s)) * 1000`, config.PgOneDay)
+		WHERE is_uncle=1 
+			AND b.block_ts > UNIX_TIMESTAMP(DATE_SUB(now(), interval %s)) * 1000`,
+		config.Config.Pool.Blocks.Period)
 
 	return repo.queryIntSingle(sql)
 }

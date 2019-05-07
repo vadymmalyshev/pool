@@ -2,19 +2,20 @@ package api
 
 import (
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	"git.tor.ph/hiveon/pool/config"
-	casbinRepository "git.tor.ph/hiveon/pool/internal/casbin"
+	"git.tor.ph/hiveon/pool/internal/casbin"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 const paramCRID = "ruleID"
 
 type CasbinRuleAPI struct {
-	casRuleRepository casbinRepository.CasbinRuleRepositorer
+	casRuleRepository casbin.CasbinRuleRepositorer
 }
 
-func NewCasbinRuleAPI() *CasbinRuleAPI {
-	return &CasbinRuleAPI{casbinRepository.NewCasRuleRepository(config.GetIDPDB())}
+func NewCasbinRuleAPI(db *gorm.DB) *CasbinRuleAPI {
+	return &CasbinRuleAPI{casbin.NewCasRuleRepository(db)}
 }
 
 // Handle GET /api/rule/get/:ruleID
@@ -32,7 +33,7 @@ func (h *CasbinRuleAPI) GetCasbinRule() gin.HandlerFunc {
 // Handle POST /api/rule/create
 func (h *CasbinRuleAPI) CreateCasbinRule() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var rule casbinRepository.CasbinRule
+		var rule casbin.CasbinRule
 		err := c.BindJSON(&rule)
 		if apierrors.HandleError(err) {
 			c.AbortWithStatusJSON(400, apierrors.NewApiErr(400, "Invalid JSON format"))
@@ -49,7 +50,7 @@ func (h *CasbinRuleAPI) CreateCasbinRule() gin.HandlerFunc {
 // Handle PUT /api/rule/update
 func (h *CasbinRuleAPI) UpdateCasbinRule() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var rule casbinRepository.CasbinRule
+		var rule casbin.CasbinRule
 		err := c.BindJSON(&rule)
 		if apierrors.HandleError(err) {
 			c.AbortWithStatusJSON(400, apierrors.NewApiErr(400, "Invalid JSON format"))

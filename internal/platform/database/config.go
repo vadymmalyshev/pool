@@ -4,6 +4,12 @@ import (
 	"errors"
 )
 
+// DBConfiger is the main interface to db providers
+type DBConfiger interface {
+	Validate() error
+	Connect() (interface{}, error)
+}
+
 // Config represents db config struct
 type Config struct {
 	Host      string

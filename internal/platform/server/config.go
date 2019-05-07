@@ -7,8 +7,8 @@ import (
 
 // Config holds information necessary for running a server
 type Config struct {
-	Host string
-	Port int
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
 }
 
 // Validate checks that the configuration is valid

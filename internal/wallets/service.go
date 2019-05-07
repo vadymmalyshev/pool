@@ -2,11 +2,13 @@ package wallets
 
 import (
 	"encoding/json"
-	"git.tor.ph/hiveon/pool/config"
-	incomeRepository "git.tor.ph/hiveon/pool/internal/income"
+	"git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/minerdash"
 	"git.tor.ph/hiveon/pool/internal/redis"
 	"git.tor.ph/hiveon/pool/models"
+	red "github.com/go-redis/redis"
+	"github.com/influxdata/influxdb1-client"
+	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 	"math"
 	"strconv"
@@ -30,18 +32,19 @@ type WalletServicer interface {
 type walletService struct {
 	minerService        minerdash.MinerServicer
 	redisRepository     redis.RedisRepositorer
-	incomeRepository    incomeRepository.IncomeRepositorer
+	incomeRepository    income.IncomeRepositorer
 	minerdashRepository minerdash.MinerdashRepositorer
 	walletRepository    WalletRepositorer
 }
 
-func NewWalletService() WalletServicer {
+func NewWalletService(sql2DB *gorm.DB, sql3DB *gorm.DB, admDB *gorm.DB , influxDB *client.Client , redisDB *red.Client) WalletServicer {
+
 	return &walletService{
-		minerService:        minerdash.NewMinerService(),
-		redisRepository:     redis.NewRedisRepository(config.Red),
-		incomeRepository:    incomeRepository.NewIncomeRepository(config.Seq3),
-		minerdashRepository: minerdash.NewMinerdashRepository(config.Influx),
-		walletRepository:    NewWalletRepository(config.GetDB())}
+		minerService:        minerdash.NewMinerService(sql2DB, sql3DB, influxDB, redisDB),
+		redisRepository:     redis.NewRedisRepository(redisDB),
+		incomeRepository:    income.NewIncomeRepository(sql3DB),
+		minerdashRepository: minerdash.NewMinerdashRepository(influxDB),
+		walletRepository:    NewWalletRepository(admDB)}
 }
 
 func (w *walletService) GetWalletInfo(walletId string) (minerdash.WalletInfo, error) {

@@ -8,9 +8,11 @@ import (
 	"git.tor.ph/hiveon/pool/internal/api/utils"
 	"git.tor.ph/hiveon/pool/internal/income"
 	"git.tor.ph/hiveon/pool/internal/redis"
-	influx "github.com/influxdata/influxdb1-client/models"
+	"github.com/influxdata/influxdb1-client/models"
 	"github.com/jinzhu/gorm"
+	client "github.com/influxdata/influxdb1-client"
 	log "github.com/sirupsen/logrus"
+	red "github.com/go-redis/redis"
 	"math"
 	"reflect"
 	"sort"
@@ -44,9 +46,10 @@ type minerService struct {
 	redisRepository      redis.RedisRepositorer
 }
 
-func NewMinerService() MinerServicer {
-	return &minerService{incomeRepository: income.NewIncomeRepository(config.Seq3), minerdashRepository: NewMinerdashRepository(config.Influx),
-		accountingRepository: accounting.NewAccountingRepository(config.Seq2), redisRepository: redis.NewRedisRepository(config.Red)}
+func NewMinerService(sql2DB *gorm.DB, sql3DB *gorm.DB, influxDB *client.Client, redisDB *red.Client) MinerServicer {
+
+	return &minerService{incomeRepository: income.NewIncomeRepository(sql3DB), minerdashRepository: NewMinerdashRepository(influxDB),
+		accountingRepository: accounting.NewAccountingRepository(sql2DB), redisRepository: redis.NewRedisRepository(redisDB)}
 }
 
 // for mockBlockRepo testing
@@ -199,8 +202,8 @@ func (m *minerService) GetHashrate(walletID string, workerID string) (Hashrate, 
 }
 
 func (m *minerService) GetIndex() (PoolData, error) {
-	hashrateCul, _ := strconv.ParseFloat(config.HashrateCul, 64)
-	hashrateCulDivider, _ := strconv.ParseFloat(config.HashrateCulDivider, 64)
+	hashrateCul, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.Cul, 64)
+	hashrateCulDivider, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.CulDivider, 64)
 	hashrateConfig := hashrateCul / hashrateCulDivider
 
 	hashRate, err := m.minerdashRepository.GetPoolLatestShare()
@@ -218,7 +221,7 @@ func (m *minerService) GetIndex() (PoolData, error) {
 
 	poolData := PoolData{Code: 200}
 
-	if !reflect.DeepEqual(hashRate, influx.Row{}) {
+	if !reflect.DeepEqual(hashRate, models.Row{}) {
 		poolData.Data.Hashrate.Time = hashRate.Values[0][0].(string)
 		validShares := hashRate.Values[0][1]
 		if validShares != nil {
@@ -234,7 +237,7 @@ func (m *minerService) GetIndex() (PoolData, error) {
 		}
 	}
 
-	if !reflect.DeepEqual(miner, influx.Row{}) {
+	if !reflect.DeepEqual(miner, models.Row{}) {
 		poolData.Data.Miner.Time = miner.Values[0][0].(string)
 		minerCount, _ := miner.Values[0][1].(json.Number).Float64()
 		val := math.Round(minerCount/1000*10) / 10
@@ -244,7 +247,7 @@ func (m *minerService) GetIndex() (PoolData, error) {
 		poolData.Data.Miner.Count = val
 	}
 
-	if !reflect.DeepEqual(worker, influx.Row{}) {
+	if !reflect.DeepEqual(worker, models.Row{}) {
 		poolData.Data.Worker.Time = worker.Values[0][0].(string)
 		workerCount, _ := worker.Values[0][1].(json.Number).Float64()
 		val := math.Round(workerCount/1000*10) / 10
@@ -449,8 +452,10 @@ func calcMeanHashrate(sharesDetails *[]SharesDetail) {
 		numCount float64
 	)
 	beginIsZero := true
-	hashrate := utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
-		utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
+	hashrateCul, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.Cul, 64)
+	hashrateCulDivider, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.CulDivider, 64)
+
+	hashrate := hashrateCul / hashrateCulDivider
 
 	for i := range *sharesDetails {
 		if !beginIsZero || (*sharesDetails)[i].ValidShares > 0 || (*sharesDetails)[i].InvalidShares > 0 {
@@ -472,8 +477,10 @@ func calcMeanHashrate(sharesDetails *[]SharesDetail) {
 }
 
 func (m *minerService) CalcHashrate(count float64) float64 {
-	hashRateCul := utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCul") /
-		utils.GetConfig().GetFloat64("app.config.pool.hashrate.hashrateCulDivider")
+	hashrateCul, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.Cul, 64)
+	hashrateCulDivider, _ := strconv.ParseFloat(config.Config.Pool.Hashrate.CulDivider, 64)
+
+	hashRateCul := hashrateCul / hashrateCulDivider
 
 	result := math.Round(hashRateCul * count)
 	if math.IsNaN(result) {

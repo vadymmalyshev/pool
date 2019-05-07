@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"git.tor.ph/hiveon/pool/api/apierrors"
-	"git.tor.ph/hiveon/pool/config"
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
 	"git.tor.ph/hiveon/pool/models"
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
@@ -39,19 +37,8 @@ type BillingRepository struct {
 	client *gorm.DB
 }
 
-func NewBillingRepository() *BillingRepository {
-	return &BillingRepository{GetBillingRepositoryClient()}
-}
-
-func GetBillingRepositoryClient() *gorm.DB {
-	db, err := postgres.Connect(config.DB)
-
-	//err = models.Migrate(db) // testing
-
-	if err != nil {
-		log.Panic("failed to init billing db :", err.Error())
-	}
-	return db
+func NewBillingRepository(admDB *gorm.DB) *BillingRepository {
+	return &BillingRepository{admDB}
 }
 
 func (r *BillingRepository) SaveWallet(wallet models.Wallet) error {

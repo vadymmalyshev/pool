@@ -2,13 +2,12 @@ package middleware
 
 import (
 	"git.tor.ph/hiveon/pool/config"
-	"git.tor.ph/hiveon/pool/internal/api/utils"
 	"github.com/casbin/casbin"
 	"github.com/gin-gonic/gin"
-	"github.com/ory/hydra/sdk/go/hydra/swagger"
 	"net/http"
+	"github.com/ory/hydra/sdk/go/hydra/swagger"
+	"git.tor.ph/hiveon/pool/internal/api/utils"
 )
-
 type Authorizer struct {
 	enforcer *casbin.Enforcer
 }
@@ -17,8 +16,8 @@ func NewAuthorizer(e *casbin.Enforcer) gin.HandlerFunc {
 	a := &Authorizer{enforcer: e}
 
 	return func(c *gin.Context) {
-		if config.UseCasbin {
-			if !a.CheckPermission(c.Request) {
+		if config.UseCasbin{
+			if (!a.CheckPermission(c.Request)) {
 				a.RequirePermission(c)
 			}
 		}
@@ -37,3 +36,5 @@ func (a *Authorizer) CheckPermission(r *http.Request) bool {
 func (a *Authorizer) RequirePermission(c *gin.Context) {
 	c.AbortWithStatus(403)
 }
+
+

@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.tor.ph/hiveon/pool/config"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"git.tor.ph/hiveon/pool/internal/platform/kafka/client"
-	log "github.com/sirupsen/logrus"
 	"git.tor.ph/hiveon/pool/internal/consumer/model"
 	"git.tor.ph/hiveon/pool/internal/consumer/redis"
 	"git.tor.ph/hiveon/pool/internal/consumer/utils"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
+	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"os"
 	"os/signal"
@@ -18,20 +17,19 @@ import (
 )
 
 var redisRepository redis.IRedisRepository
-var c *kafka.Consumer
 var miningPools string
 
 func StartConsumer(er chan error, buffer chan []byte, telebot *tb.Bot) {
 
-	topics := strings.Fields(config.Kafka.KafkaTopics)
-	miningPools = config.Kafka.KafkaMiningPools
+	topics := strings.Fields(config.Config.Kafka.Topics)
+	miningPools = config.Config.Kafka.MiningPools
 
 	redisRepository = redis.NewRedisRepository()
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
 
-	c, err := client.Connect(config.Kafka)
+	c, err := config.Config.Kafka.Connect()
 
 	if err != nil {
 		log.Error("Failed to create consumer: ", err)

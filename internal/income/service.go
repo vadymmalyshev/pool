@@ -1,10 +1,10 @@
 package income
 
 import (
-	"git.tor.ph/hiveon/pool/internal/accounting"
+	"github.com/jinzhu/gorm"
 	"time"
 
-	"git.tor.ph/hiveon/pool/config"
+	"git.tor.ph/hiveon/pool/internal/accounting"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,8 +18,8 @@ type incomeService struct {
 	incomeRepository     IncomeRepositorer
 }
 
-func NewIncomeService() IncomeServicer {
-	return &incomeService{accountingRepository: accounting.NewAccountingRepository(config.Seq2), incomeRepository: NewIncomeRepository(config.Seq3)}
+func NewIncomeService(sql2DB *gorm.DB, sql3DB *gorm.DB) IncomeServicer {
+	return &incomeService{accountingRepository: accounting.NewAccountingRepository(sql2DB), incomeRepository: NewIncomeRepository(sql3DB)}
 }
 
 func NewBlockServiceWithRepo(repo accounting.AccointingRepositorer) IncomeServicer {

@@ -2,17 +2,20 @@ package hydra
 
 import "errors"
 
+// Config represents hydra settings
 type Config struct {
-	APIUrl   string
-	AdminURL string
+	API    string `yaml:"api"`
+	Admin  string `yaml:"admin"`
+	Docker string `yaml:"docker"`
 }
 
+// Validate checks hydra settings
 func (c Config) Validate() error {
-	if c.APIUrl == "" {
+	if c.API == "" {
 		return errors.New("hydra public url is required")
 	}
 
-	if c.AdminURL == "" {
+	if c.Admin == "" {
 		return errors.New("hydra admin url is required")
 	}
 

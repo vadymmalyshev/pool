@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/jinzhu/gorm"
 	"time"
 
 	"git.tor.ph/hiveon/pool/api/apierrors"
@@ -14,8 +15,8 @@ type BillingAPI struct {
 	collector         *billing.Collector
 }
 
-func NewBillingAPI() BillingAPI {
-	br := billing.NewBillingRepository()
+func NewBillingAPI(admDB *gorm.DB) BillingAPI {
+	br := billing.NewBillingRepository(admDB)
 	return BillingAPI{billingRepository: br, collector: billing.NewCollector(br)}
 }
 

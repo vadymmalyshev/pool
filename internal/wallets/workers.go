@@ -1,15 +1,17 @@
 package wallets
 
 import (
+	"time"
+	/*
 	"fmt"
 	"strconv"
-	"time"
+	"
 
 	"github.com/pkg/errors"
 
 	"git.tor.ph/hiveon/pool/config"
 
-	red "github.com/gomodule/redigo/redis"
+	red "github.com/gomodule/redigo/redis"*/
 )
 
 // WorkerPulse represents worker's name and last time it was sent share to the pool.
@@ -23,6 +25,7 @@ type WorkerPulse struct {
 const tsToSec = 1000000000
 
 // GetWorkersPulse returns list of WorkersPluse instances
+/*
 func GetWorkersPulse(redisClient red.Conn, walletID string) (result map[string]WorkerPulse, err error) {
 	data, err := redisClient.Do("HGETALL", "last-update:"+walletID)
 
@@ -42,7 +45,7 @@ func GetWorkersPulse(redisClient red.Conn, walletID string) (result map[string]W
 		}
 
 		timeStamp := time.Unix(ts/tsToSec, 0)
-		isOnline := timeStamp.After(time.Now().Add(-time.Duration(config.WorkerOfflineMin) * time.Minute))
+		isOnline := timeStamp.After(time.Now().Add(-time.Duration(config.Config.Pool.Workers.OfflineAfter) * time.Minute))
 
 		result[k] = WorkerPulse{
 			Name:     k,
@@ -53,3 +56,4 @@ func GetWorkersPulse(redisClient red.Conn, walletID string) (result map[string]W
 
 	return result, nil
 }
+*/

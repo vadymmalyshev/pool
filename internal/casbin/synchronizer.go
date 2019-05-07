@@ -2,16 +2,15 @@ package casbin
 
 import (
 	"fmt"
+	"time"
+
+	"git.tor.ph/hiveon/pool/config"
 	"git.tor.ph/hiveon/pool/internal/auth"
-	"git.tor.ph/hiveon/pool/internal/platform/database"
-	"git.tor.ph/hiveon/pool/internal/platform/database/postgres"
-	"git.tor.ph/hiveon/pool/internal/platform/database/redis"
 	"github.com/casbin/casbin"
 	gormadapter "github.com/casbin/gorm-adapter"
 	redisadapter "github.com/casbin/redis-adapter"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/robfig/cron"
@@ -34,30 +33,22 @@ type Syncronizer struct {
 }
 
 // NewSynchronizer returns Syncronizer
-func NewSynchronizer(dbCfg database.Config, redisCfg database.Config) (*Syncronizer, error) {
-	if err := dbCfg.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid database config")
-	}
-
-	db, err := postgres.Connect(dbCfg)
+func NewSynchronizer() (*Syncronizer, error) {
+	db, err := config.Config.Admin.DB.Connect()
 
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize db")
+		return nil, errors.Wrap(err, "failed to initialize IDP db")
 	}
 
-	if err := redisCfg.Validate(); err != nil {
-		return nil, errors.Wrap(err, "invalid redis config")
-	}
-
-	redisConn, err := redis.Connect(redisCfg)
+	redisConn, err := config.Config.Redis.ConnectCasbin()
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize redis")
 	}
 
-	redisAdapter := redis.Adapter(redisCfg)
+	redisAdapter := config.Config.Redis.Casbin()
 
-	a := gormadapter.NewAdapter("postgres", postgres.Connection(dbCfg), true)
+	a := gormadapter.NewAdapter("postgres", config.Config.Admin.DB.Connection(), true)
 	enforcer := auth.NewAccessEnforcer(a)
 
 	return &Syncronizer{
