@@ -1,5 +1,5 @@
  FROM golang
- RUN mkdir -p /hadmin/config
+ RUN mkdir -p /hadmin/{config,intenral}
  WORKDIR /hadmin
  RUN apt update && \
       apt install -y libsasl2-dev libsasl2-modules libssl-dev && \

@@ -1,5 +1,5 @@
  FROM golang
- RUN mkdir -p /hbilling/config
+ RUN mkdir -p /hbilling/{config,internal}
  RUN apt update && \
      apt install -y libsasl2-dev libsasl2-modules libssl-dev && \
      git clone https://github.com/edenhill/librdkafka.git && \
