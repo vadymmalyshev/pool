@@ -18,10 +18,10 @@ note: use configName without ".yaml"
 -c=configName      OR:   --c=configName
 -c configName            --c configName
 
-TODO: Add an admin access to the user which found by email
+Add an admin access to the user which found by email
 ```go run ./cmd/hadmin/hadmin.go admin add <email>```
 
-TODO: Remove an admin access to the user which found by email
+Remove an admin access to the user which found by email
 ```go run ./cmd/hadmin/hadmin.go admin remove <email>```
 
 expose remote influx ports to use it as local service

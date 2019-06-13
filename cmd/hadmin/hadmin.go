@@ -17,7 +17,20 @@ var cmdRoot = &cobra.Command{
 var cmdAdmin = &cobra.Command{
 	Use:   "admin",
 	Short: "Add/remove admin rights to user",
+	TraverseChildren: true,
 	Run:   internalAdmin.AddAdmin,
+}
+
+var cmdAdd = &cobra.Command{
+	Use:   "add",
+	Short: "Add admin rights for user",
+	Run:   internalAdmin.AddAction,
+}
+
+var cmdRemove = &cobra.Command{
+	Use:   "remove",
+	Short: "Remove admin rights for user",
+	Run:   internalAdmin.RemoveAction,
 }
 
 var cmdMigrate = &cobra.Command{
@@ -28,7 +41,10 @@ var cmdMigrate = &cobra.Command{
 
 func init() {
 	flag.Parse()
+	cmdAdmin.AddCommand(cmdAdd)
+	cmdAdmin.AddCommand(cmdRemove)
 	cmdRoot.AddCommand(cmdMigrate)
+	cmdRoot.AddCommand(cmdAdmin)
 }
 
 func main() {

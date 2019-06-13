@@ -10,6 +10,8 @@ type CasbinRuleRepositorer interface {
 	CreateCasbinRule(rule CasbinRule) (CasbinRule, error)
 	UpdateCasbinRule(rule CasbinRule) (CasbinRule, error)
 	DeleteCasbinRule(ruleID string) error
+	AddIfNotExistCasbinRule(rule CasbinRule) error
+	RemoveIfExistCasbinRule(rule CasbinRule)
 }
 
 type CasRuleRepository struct {
@@ -60,5 +62,14 @@ func (g *CasRuleRepository) DeleteCasbinRule(ruleID string) error {
 	if apierrors.HandleError(err) {
 		return err
 	}
+
 	return nil
+}
+
+func (g *CasRuleRepository) AddIfNotExistCasbinRule(rule CasbinRule) error {
+	return g.db.FirstOrCreate(&rule, rule).Error
+}
+
+func (g *CasRuleRepository) RemoveIfExistCasbinRule(rule CasbinRule) {
+	  g.db.Unscoped().Delete(CasbinRule{}, "p_type = ? and V0 = ? and V1 = ? and V2 = ?", rule.PType, rule.V0, rule.V1, rule.V2)
 }

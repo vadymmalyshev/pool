@@ -47,6 +47,7 @@ require (
 	github.com/theplant/cldr v0.0.0-20170713054817-b97a4c2a76cf // indirect
 	github.com/theplant/htmltestingutils v0.0.0-20171010073838-5313e1d8c06a // indirect
 	github.com/theplant/testingutils v0.0.0-20181126090146-80e83e84b643 // indirect
+	github.com/volatiletech/authboss v0.0.0-20190207041050-5c92c016e0cd
 	github.com/yosssi/gohtml v0.0.0-20190128141317-9b7db94d32d9 // indirect
 	golang.org/x/oauth2 v0.0.0-20190220154721-9b3c75971fc9
 	gopkg.in/resty.v1 v1.11.0
