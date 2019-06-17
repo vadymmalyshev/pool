@@ -18,6 +18,9 @@ func InitAdmin(adminDB *gorm.DB, idpDB *gorm.DB, seq2 *gorm.DB, mux *http.ServeM
 	admin.AddResource(&users.User{})
 	admin.AddResource(&models.Blacklist{})
 	admin.AddResource(&casbin.CasbinRule{})
+	admin.AddResource(&models.WorkerFee{})
+	admin.AddResource(&models.BillingWorkerStatistic{})
+	admin.AddResource(&models.BillingWorkerMoney{})
 
 	admin.MountTo("/admin", mux)
 }
